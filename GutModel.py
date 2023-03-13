@@ -27,7 +27,6 @@ Observable('Bifido_tot', Bifidobacterium())
 Observable('Desulfo_tot', Desulfobrivio())
 
 #metabolite production rules
-
 Parameter('k_Inulin_prod', 10/t_step)
 Parameter('k_Glucose_prod', 30/t_step)
 Parameter('k_Lactose_prod', 15/t_step)
@@ -49,77 +48,112 @@ Parameter('k_Bact_Inulin_Hungry', 10)
 
 [Rule('BactEatInulin_Basal_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Inulin() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Inulin_Basal)
  for i in range(hung_threshold, n_levels -1)]
-
 [Rule('BactEatInulin_Hungry_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Inulin() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Inulin_Hungry)
  for i in range(0, hung_threshold)]
 
-#Todo: finish adding basal and hungry rules below.
-Parameter('k_Clost_Inulin', 1)
+#todo: finish adding basal and hungry rules below.
+Parameter('k_Clost_Inulin_Basal', 1)
+Parameter('k_Clost_Inulin_Hungry', 10)
 
-[Rule('ClostEatInulin_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Inulin() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Inulin)
- for i in range(n_levels - 1)]
+[Rule('ClostEatInulin_Basal_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Inulin() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Inulin_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('ClostEatInulin_Hungry_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Inulin() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Inulin_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Desulfo_ChondSulf', 1)
+Parameter('k_Desulfo_ChondSulf_Basal', 1)
+Parameter('k_Desulfo_ChondSulf_Hungry', 10)
 
-[Rule('DesulfoEatChond_%d_%d' % (i,i+1), Desulfobrivio(energy='_%d' % i) + ChondSulf() >> Desulfobrivio(energy= '_%d' % (i+1)), k_Desulfo_ChondSulf)
- for i in range(n_levels - 1)]
+[Rule('DesulfoEatChond_Basal_%d_%d' % (i,i+1), Desulfobrivio(energy='_%d' % i) + ChondSulf() >> Desulfobrivio(energy= '_%d' % (i+1)), k_Desulfo_ChondSulf_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('DesulfoEatChond_Hungry_%d_%d' % (i,i+1), Desulfobrivio(energy='_%d' % i) + ChondSulf() >> Desulfobrivio(energy= '_%d' % (i+1)), k_Desulfo_ChondSulf_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Desulfo_Lactate', 1)
+Parameter('k_Desulfo_Lactate_Basal', 1)
+Parameter('k_Desulfo_Lactate_Hungry', 10)
 
-[Rule('DesulfoEatLactate_%d_%d' % (i,i+1), Desulfobrivio(energy='_%d' % i) + Lactate() >> Desulfobrivio(energy= '_%d' % (i+1)), k_Desulfo_Lactate)
- for i in range(n_levels - 1)]
+[Rule('DesulfoEatLactate_Basal_%d_%d' % (i,i+1), Desulfobrivio(energy='_%d' % i) + Lactate() >> Desulfobrivio(energy= '_%d' % (i+1)), k_Desulfo_Lactate_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('DesulfoEatLactate_Hungry_%d_%d' % (i,i+1), Desulfobrivio(energy='_%d' % i) + Lactate() >> Desulfobrivio(energy= '_%d' % (i+1)), k_Desulfo_Lactate_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Bact_Glucose')
+Parameter('k_Bact_Glucose_Basal', 1)
+Parameter('k_Bact_Glucose_Hungry', 10)
 
-[Rule('BactEatGlucose_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Glucose() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Glucose)
- for i in range(n_levels - 1)]
+[Rule('BactEatGlucose_Basal_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Glucose() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Glucose_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('BactEatGlucose_Hungry_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Glucose() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Glucose_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Bact_Lactose')
+Parameter('k_Bact_Lactose_Basal', 1)
+Parameter('k_Bact_Lactose_Hungry', 10)
 
-[Rule('BactEatLactose_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Lactose() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Lactose)
- for i in range(n_levels - 1)]
+[Rule('BactEatLactose_Basal_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Lactose() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Lactose_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('BactEatLactose_Hungry_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Lactose() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Lactose_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Bact_Fructo')
+Parameter('k_Bact_Fructo_Basal', 1)
+Parameter('k_Bact_Fructo_Hungry', 10)
 
-[Rule('BactEatFructo_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Fructo() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Fructo)
- for i in range(n_levels - 1)]
+[Rule('BactEatFructo_Basal_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Fructo() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Fructo_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('BactEatFructo_Hungry_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Fructo() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Fructo_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Clost_Glucose')
+Parameter('k_Clost_Glucose_Basal', 1)
+Parameter('k_Clost_Glucose_Hungry', 10)
 
-[Rule('ClostEatGlucose_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Glucose() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Glucose)
- for i in range(n_levels - 1)]
+[Rule('ClostEatGlucose_Basal_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Glucose() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Glucose_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('ClostEatGlucose_Hungry_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Glucose() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Glucose_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Clost_Lactose')
+Parameter('k_Clost_Lactose_Basal', 1)
+Parameter('k_Clost_Lactose_Hungry', 10)
 
-[Rule('ClostEatLactose_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Lactose() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Lactose)
- for i in range(n_levels - 1)]
+[Rule('ClostEatLactose_Basal_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Lactose() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Lactose_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('ClostEatLactose_Hungry_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Lactose() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Lactose_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Clost_Fructo')
+Parameter('k_Clost_Fructo_Basal', 1)
+Parameter('k_Clost_Fructo_Hungry', 10)
 
-[Rule('ClostEatFructo_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Fructo() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Fructo)
- for i in range(n_levels - 1)]
+[Rule('ClostEatFructo_Basal_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Fructo() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Fructo_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('ClostEatFructo_Hungry_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Fructo() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Fructo_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Bifido_Glucose')
+Parameter('k_Bifido_Glucose_Basal', 1)
+Parameter('k_Bifido_Glucose_Hungry', 10)
 
-[Rule('BifidoEatGlucose_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Glucose() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Glucose)
- for i in range(n_levels - 1)]
+[Rule('BifidoEatGlucose_Basal_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Glucose() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Glucose_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('BifidoEatGlucose_Hungry_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Glucose() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Glucose_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Bifido_Lactose')
+Parameter('k_Bifido_Lactose_Basal', 1)
+Parameter('k_Bifido_Lactose_Hungry', 10)
 
-[Rule('BifidoEatLactose_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Lactose() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Lactose)
- for i in range(n_levels - 1)]
+[Rule('BifidoEatLactose_Basal_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Lactose() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Lactose_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('BifidoEatLactose_Hungry_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Lactose() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Lactose_Hungry)
+ for i in range(0, hung_threshold)]
 
-Parameter('k_Bifido_Fructo')
+Parameter('k_Bifido_Fructo_Basal', 1)
+Parameter('k_Bifido_Fructo_Hungry', 10)
 
-[Rule('BifidoEatFructo_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Fructo() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Fructo)
- for i in range(n_levels - 1)]
+[Rule('BifidoEatFructo_Basal_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Fructo() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Fructo_Basal)
+ for i in range(hung_threshold, n_levels - 1)]
+[Rule('BifidoEatFructo_Hungry_%d_%d' % (i,i+1), Bifidobacterium(energy='_%d' % i) + Fructo() >> Bifidobacterium(energy= '_%d' % (i+1)), k_Bifido_Fructo_Hungry)
+ for i in range(0, hung_threshold)]
 
+#lactate production rule
 Parameter('k_Bifido_Lactate')
 
 Rule('BifidoMakeLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_Bifido_Lactate)
 
 #energy loss rules
-
 Parameter('k_energy_loss', 14.4/t_step)
 
 [Rule('Bact_Loss_%d_%d' % (i,i-1), Bacteroides(energy='_%d' % i) >> Bacteroides(energy= '_%d' % (i-1)), k_energy_loss)
@@ -176,18 +210,18 @@ Rule('Bifido_death', Bifidobacterium(energy = '_0') >> None, k_Death)
 #leave rate
 #rate of sticking, unsticking, and time to leave system (k) - find this
 
-Parameter('k_Bact_stuck', 1/(t_step*100))
-Parameter('k_Clost_stuck', 1/(t_step*100))
-Parameter('k_Desulfo_stuck', 1/(t_step*100))
-Parameter('k_Bifido_stuck', 1/(t_step*100))
-Parameter('k_Bact_unstuck', 1/(t_step*10))
-Parameter('k_Clost_unstuck', 1/(t_step*10))
-Parameter('k_Desulfo_unstuck', 1/(t_step*10))
-Parameter('k_Bifido_unstuck', 1/(t_step*10))
-Parameter('k_Bact_permstuck', 1/(t_step*20))
-Parameter('k_Clost_permstuck', 1/(t_step*20))
-Parameter('k_Desulfo_permstuck', 1/(t_step*20))
-Parameter('k_Bifido_permstuck', 1/(t_step*20))
+#Parameter('k_Bact_stuck', 1/(t_step*100))
+#Parameter('k_Clost_stuck', 1/(t_step*100))
+#Parameter('k_Desulfo_stuck', 1/(t_step*100))
+#Parameter('k_Bifido_stuck', 1/(t_step*100))
+#Parameter('k_Bact_unstuck', 1/(t_step*10))
+#Parameter('k_Clost_unstuck', 1/(t_step*10))
+#Parameter('k_Desulfo_unstuck', 1/(t_step*10))
+#Parameter('k_Bifido_unstuck', 1/(t_step*10))
+#Parameter('k_Bact_permstuck', 1/(t_step*20))
+#Parameter('k_Clost_permstuck', 1/(t_step*20))
+#Parameter('k_Desulfo_permstuck', 1/(t_step*20))
+#Parameter('k_Bifido_permstuck', 1/(t_step*20))
 #Parameter('k_Bact_removed',1/(33*2.25*10000*t_step) - k_Bact_stuck + k_Bact_stuck*k_Bact_unstuck)
 #Parameter('k_Clost_removed', 1/(33*2.25*10000*t_step) - k_Clost_stuck + k_Clost_stuck*k_Clost_unstuck)
 #Parameter('k_Desulfo_removed', 1/(33*2.25*10000*t_step) - k_Desulfo_stuck + k_Desulfo_stuck*k_Delsulfo_unstuck)
@@ -199,6 +233,36 @@ Parameter('k_Bifido_permstuck', 1/(t_step*20))
 #Rule('Clost_removal', Clostridium() >> None, k_Clost_removed)
 #Rule('Desulfo_removal', Desulfobrivio() >> None, k_Desulfo_removed)
 #Rule('Bifido_removal', Bifidobacterium() >> None, k_Bifido_removed)
+
+#stuck rules
+Parameter('k_Bact_stuck', 1/(t_step*100))
+Parameter('k_Bact_unstuck', 1/(t_step*10))
+Parameter('k_Bact_permstuck', 1/(t_step*20))
+
+Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck= 's'), k_Bact_stuck, k_Bact_unstuck)
+Rule('Bact_stuck', Bacteroides(stuck='s') >> Bacteroides(stuck= 'p'), k_Bact_permstuck)
+
+Parameter('k_Bact_stuck', 1/(t_step*100))
+Parameter('k_Bact_unstuck', 1/(t_step*10))
+Parameter('k_Bact_permstuck', 1/(t_step*20))
+
+Rule('Clost_stuck', Clostridium(stuck='u') | Clostridium(stuck= 's'), k_Clost_stuck, k_Clost_unstuck)
+Rule('Clost_stuck', Clostridium(stuck='s') >> Clostridium(stuck= 'p'), k_Clost_permstuck)
+
+Parameter('k_Bact_stuck', 1/(t_step*100))
+Parameter('k_Bact_unstuck', 1/(t_step*10))
+Parameter('k_Bact_permstuck', 1/(t_step*20))
+
+Rule('Desulfo_stuck', Desulfobrivio(stuck='u') | Desulfobrivio(stuck= 's'), k_Desulfo_stuck, k_Desulfo_unstuck)
+Rule('Desulfo_stuck', Desulfobrivio(stuck='s') >> Desulfobrivio(stuck= 'p'), k_Desulfo_permstuck)
+
+Parameter('k_Bact_stuck', 1/(t_step*100))
+Parameter('k_Bact_unstuck', 1/(t_step*10))
+Parameter('k_Bact_permstuck', 1/(t_step*20))
+
+Rule('Bifido_stuck', Bifidobacterium(stuck='u') | Bifidobacterium(stuck= 's'), k_Bifido_stuck, k_Bifido_unstuck)
+Rule('Bifido_stuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck= 'p'), k_Bifido_permstuck)
+
 
 print(model.rules)
 
