@@ -240,28 +240,28 @@ Parameter('k_Bact_unstuck', 1/(t_step*10))
 Parameter('k_Bact_permstuck', 1/(t_step*20))
 
 Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck= 's'), k_Bact_stuck, k_Bact_unstuck)
-Rule('Bact_stuck', Bacteroides(stuck='s') >> Bacteroides(stuck= 'p'), k_Bact_permstuck)
+Rule('Bact_permstuck', Bacteroides(stuck='s') >> Bacteroides(stuck= 'p'), k_Bact_permstuck)
 
-Parameter('k_Bact_stuck', 1/(t_step*100))
-Parameter('k_Bact_unstuck', 1/(t_step*10))
-Parameter('k_Bact_permstuck', 1/(t_step*20))
+Parameter('k_Clost_stuck', 1/(t_step*100))
+Parameter('k_Clost_unstuck', 1/(t_step*10))
+Parameter('k_Clost_permstuck', 1/(t_step*20))
 
 Rule('Clost_stuck', Clostridium(stuck='u') | Clostridium(stuck= 's'), k_Clost_stuck, k_Clost_unstuck)
-Rule('Clost_stuck', Clostridium(stuck='s') >> Clostridium(stuck= 'p'), k_Clost_permstuck)
+Rule('Clost_permstuck', Clostridium(stuck='s') >> Clostridium(stuck= 'p'), k_Clost_permstuck)
 
-Parameter('k_Bact_stuck', 1/(t_step*100))
-Parameter('k_Bact_unstuck', 1/(t_step*10))
-Parameter('k_Bact_permstuck', 1/(t_step*20))
+Parameter('k_Desulfo_stuck', 1/(t_step*100))
+Parameter('k_Desulfo_unstuck', 1/(t_step*10))
+Parameter('k_Desulfo_permstuck', 1/(t_step*20))
 
 Rule('Desulfo_stuck', Desulfobrivio(stuck='u') | Desulfobrivio(stuck= 's'), k_Desulfo_stuck, k_Desulfo_unstuck)
-Rule('Desulfo_stuck', Desulfobrivio(stuck='s') >> Desulfobrivio(stuck= 'p'), k_Desulfo_permstuck)
+Rule('Desulfo_permstuck', Desulfobrivio(stuck='s') >> Desulfobrivio(stuck= 'p'), k_Desulfo_permstuck)
 
-Parameter('k_Bact_stuck', 1/(t_step*100))
-Parameter('k_Bact_unstuck', 1/(t_step*10))
-Parameter('k_Bact_permstuck', 1/(t_step*20))
+Parameter('k_Bifido_stuck', 1/(t_step*100))
+Parameter('k_Bifido_unstuck', 1/(t_step*10))
+Parameter('k_Bifido_permstuck', 1/(t_step*20))
 
 Rule('Bifido_stuck', Bifidobacterium(stuck='u') | Bifidobacterium(stuck= 's'), k_Bifido_stuck, k_Bifido_unstuck)
-Rule('Bifido_stuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck= 'p'), k_Bifido_permstuck)
+Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck= 'p'), k_Bifido_permstuck)
 
 
 print(model.rules)
