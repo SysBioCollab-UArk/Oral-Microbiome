@@ -6,12 +6,25 @@ import matplotlib.pyplot as plt
 Model()
 t_step = 26.3 #seconds
 n_levels = 10
-
+#todo: add carrying capacity rules*, can stuck reproduce?, which parameters we do not have values for
+#yes, stuck bacteria can reproduce, and offspring bacteria is unstuck
+#parameters to find: hungry consumption rate, basal consumption rate, lactate production, stuck rates
 #bacteria
 Monomer('Bacteroides', ['energy', 'stuck'], {'energy': ['_%d' % i for i in range(n_levels)], 'stuck': ['u', 's', 'p']})
 Monomer('Clostridium', ['energy', 'stuck'], {'energy': ['_%d' % i for i in range(n_levels)], 'stuck': ['u', 's', 'p']})
 Monomer('Bifidobacterium', ['energy', 'stuck'], {'energy': ['_%d' % i for i in range(n_levels)], 'stuck': ['u', 's', 'p']})
 Monomer('Desulfobrivio', ['energy', 'stuck'], {'energy': ['_%d' % i for i in range(n_levels)], 'stuck': ['u', 's', 'p']})
+
+Parameter('Bact_0', 5490)
+Parameter('Clost_0', 921)
+Parameter('Bifido_0', 23562)
+Parameter('Desulfo_0', 70)
+
+Initial(Bacteroides(energy = '_%d' % (n_levels - 1), stuck ='u'), Bact_0)
+Initial(Clostridium(energy = '_%d' % (n_levels - 1), stuck ='u'), Clost_0)
+Initial(Bifidobacterium(energy = '_%d' % (n_levels - 1), stuck ='u'), Bifido_0)
+Initial(Desulfobrivio(energy = '_%d' % (n_levels - 1), stuck ='u'), Desulfo_0)
+
 
 #metabolites
 Monomer('Inulin')
@@ -51,7 +64,6 @@ Parameter('k_Bact_Inulin_Hungry', 10)
 [Rule('BactEatInulin_Hungry_%d_%d' % (i,i+1), Bacteroides(energy='_%d' % i) + Inulin() >> Bacteroides(energy= '_%d' % (i+1)), k_Bact_Inulin_Hungry)
  for i in range(0, hung_threshold)]
 
-#todo: finish adding basal and hungry rules below.
 Parameter('k_Clost_Inulin_Basal', 1)
 Parameter('k_Clost_Inulin_Hungry', 10)
 
@@ -149,7 +161,7 @@ Parameter('k_Bifido_Fructo_Hungry', 10)
  for i in range(0, hung_threshold)]
 
 #lactate production rule
-Parameter('k_Bifido_Lactate')
+Parameter('k_Bifido_Lactate', .005/t_step)
 
 Rule('BifidoMakeLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_Bifido_Lactate)
 
@@ -189,16 +201,16 @@ Parameter('k_Bifido_division', np.log(2)/td_Bifido)
 
 #bacteria division rules
 
-[Rule('Bact_divides_%d' % i, Bacteroides(energy='_%d' % i) >> Bacteroides(energy='_%d' % (i/2)) + Bacteroides(energy='_%d' % ((i + 1)/2)), k_Bact_division)
+[Rule('Bact_divides_%d' % i, Bacteroides(energy='_%d' % i) >> Bacteroides(energy='_%d' % (i/2)) + Bacteroides(energy='_%d' % ((i + 1)/2), stuck = 'u'), k_Bact_division)
  for i in range(div_threshold, n_levels)]
 
-[Rule('Clost_divides_%d' % i, Clostridium(energy='_%d' % i) >> Clostridium(energy='_%d' % (i/2)) + Clostridium(energy='_%d' % ((i + 1)/2)), k_Clost_division)
+[Rule('Clost_divides_%d' % i, Clostridium(energy='_%d' % i) >> Clostridium(energy='_%d' % (i/2)) + Clostridium(energy='_%d' % ((i + 1)/2), stuck = 'u'), k_Clost_division)
  for i in range(div_threshold, n_levels)]
 
-[Rule('Desulfo_divides_%d' % i, Desulfobrivio(energy='_%d' % i) >> Desulfobrivio(energy='_%d' % (i/2)) + Desulfobrivio(energy='_%d' % ((i + 1)/2)), k_Desulfo_division)
+[Rule('Desulfo_divides_%d' % i, Desulfobrivio(energy='_%d' % i) >> Desulfobrivio(energy='_%d' % (i/2)) + Desulfobrivio(energy='_%d' % ((i + 1)/2), stuck = 'u'), k_Desulfo_division)
  for i in range(div_threshold, n_levels)]
 
-[Rule('Bifido_divides_%d' % i, Bifidobacterium(energy='_%d' % i) >> Bifidobacterium(energy='_%d' % (i/2)) + Bifidobacterium(energy='_%d' % ((i + 1)/2)), k_Bifido_division)
+[Rule('Bifido_divides_%d' % i, Bifidobacterium(energy='_%d' % i) >> Bifidobacterium(energy='_%d' % (i/2)) + Bifidobacterium(energy='_%d' % ((i + 1)/2), stuck = 'u'), k_Bifido_division)
  for i in range(div_threshold, n_levels)]
 
 #death rules
@@ -229,36 +241,48 @@ Rule('Bifido_death', Bifidobacterium(energy = '_0') >> None, k_Death)
 
 #todo: s,p, u rules
 #removal rules
-#Rule('Bact_removal', Bacteroides() >> None, k_Bact_removed)
-#Rule('Clost_removal', Clostridium() >> None, k_Clost_removed)
-#Rule('Desulfo_removal', Desulfobrivio() >> None, k_Desulfo_removed)
-#Rule('Bifido_removal', Bifidobacterium() >> None, k_Bifido_removed)
+
+flow_rate = 2.22 #cm/min
+Parameter('k_Bact_unstuck_removed', flow_rate/(7.98 * 100)/60) #/s (7.98 cm is the length of an element; there are 100 total elements; 60 seconds per minute)
+Parameter('k_Clost_unstuck_removed', flow_rate/(7.98 * 100)/60) #/s (7.98 cm is the length of an element; there are 100 total elements; 60 seconds per minute)
+Parameter('k_Desulfo_unstuck_removed', flow_rate/(7.98 * 100)/60) #/s (7.98 cm is the length of an element; there are 100 total elements; 60 seconds per minute)
+Parameter('k_Bifido_unstuck_removed', flow_rate/(7.98 * 100)/60) #/s (7.98 cm is the length of an element; there are 100 total elements; 60 seconds per minute)
+
+Rule('Bact_unstuck_removal', Bacteroides(stuck = 'u') >> None, k_Bact_unstuck_removed)
+Rule('Clost_unstuck_removal', Clostridium(stuck = 'u') >> None, k_Clost_unstuck_removed)
+Rule('Desulfo_unstuck_removal', Desulfobrivio(stuck = 'u') >> None, k_Desulfo_unstuck_removed)
+Rule('Bifido_unstuck_removal', Bifidobacterium(stuck = 'u') >> None, k_Bifido_unstuck_removed)
+
 
 #stuck rules
-Parameter('k_Bact_stuck', 1/(t_step*100))
-Parameter('k_Bact_unstuck', 1/(t_step*10))
-Parameter('k_Bact_permstuck', 1/(t_step*20))
+maxStuckChance = 50/t_step
+midStuckConc = 10/t_step
+#(maxStuckChance - ((maxStuckChance) * population / (midStuckConc + population)
+
+Parameter('k_Bact_stuck', (maxStuckChance - ((maxStuckChance) / (midStuckConc))
+Parameter('k_Bact_unstuck', 10/t_step)
+Parameter('k_Bact_permstuck', 5/t_step)
 
 Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck= 's'), k_Bact_stuck, k_Bact_unstuck)
 Rule('Bact_permstuck', Bacteroides(stuck='s') >> Bacteroides(stuck= 'p'), k_Bact_permstuck)
 
-Parameter('k_Clost_stuck', 1/(t_step*100))
-Parameter('k_Clost_unstuck', 1/(t_step*10))
-Parameter('k_Clost_permstuck', 1/(t_step*20))
+Parameter('k_Clost_stuck', (maxStuckChance - ((maxStuckChance) * population / (midStuckConc + population))
+Parameter('k_Clost_unstuck', 10/t_step)
+Parameter('k_Clost_permstuck', 5/t_step)
 
 Rule('Clost_stuck', Clostridium(stuck='u') | Clostridium(stuck= 's'), k_Clost_stuck, k_Clost_unstuck)
 Rule('Clost_permstuck', Clostridium(stuck='s') >> Clostridium(stuck= 'p'), k_Clost_permstuck)
 
-Parameter('k_Desulfo_stuck', 1/(t_step*100))
-Parameter('k_Desulfo_unstuck', 1/(t_step*10))
-Parameter('k_Desulfo_permstuck', 1/(t_step*20))
+Parameter('k_Desulfo_stuck', (maxStuckChance - ((maxStuckChance) * population / (midStuckConc + population))
+Parameter('k_Desulfo_unstuck', 10/t_step)
+Parameter('k_Desulfo_permstuck', 5/t_step)
 
 Rule('Desulfo_stuck', Desulfobrivio(stuck='u') | Desulfobrivio(stuck= 's'), k_Desulfo_stuck, k_Desulfo_unstuck)
 Rule('Desulfo_permstuck', Desulfobrivio(stuck='s') >> Desulfobrivio(stuck= 'p'), k_Desulfo_permstuck)
 
-Parameter('k_Bifido_stuck', 1/(t_step*100))
-Parameter('k_Bifido_unstuck', 1/(t_step*10))
-Parameter('k_Bifido_permstuck', 1/(t_step*20))
+Parameter('k_Bifido_stuck', (maxStuckChance - ((maxStuckChance) * population / (midStuckConc + population))
+Parameter('k_Bifido_unstuck', 10/t_step)
+Parameter('k_Bifido_permstuck', 5/t_step)
 
 Rule('Bifido_stuck', Bifidobacterium(stuck='u') | Bifidobacterium(stuck= 's'), k_Bifido_stuck, k_Bifido_unstuck)
 Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck= 'p'), k_Bifido_permstuck)
@@ -266,6 +290,20 @@ Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck= 'p
 
 print(model.rules)
 
+#simulations
+t_span = np.linspace(3*t_step, 301)
+sim = ScipyOdeSimulator(model, t_span, verbose = True)
+result = sim.run()
 
+for obs in model.observables:
+ plt.plot(t_span, result.observables[obs.name], label = obs.name)
+ plt.xlabel('time (s)')
+ plt.ylabel('# of cells')
+ plt.yscale('log', base = 10)
+ plt.legend(loc=0)
+
+#print(result.observables['Bact_tot'])
+plt.tight_layout()
+plt.show()
 
 
