@@ -10,6 +10,7 @@ def read_Gutlogo(filename):
 
     with open(filename, 'r', encoding='utf-8-sig') as csvfile:
         plots = csv.reader(csvfile, delimiter = ',')
+        next(plots)  # skip header
         for row in plots:
             x.append(int(row[0]))
             y_1.append(int(row[1]))
@@ -23,7 +24,7 @@ def read_Gutlogo(filename):
     return x, pops, Label
 
 if __name__ == '__main__':
-    x, pops, label = read_Gutlogo('populations-3.csv')
+    x, pops, label = read_Gutlogo('populations-4.csv')
     for y, l in zip(pops, label):
         plt.plot(x, y, label = l)
 

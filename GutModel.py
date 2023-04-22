@@ -62,6 +62,10 @@ Observable('Bifido_tot', Bifidobacterium())
 Observable('Desulfo_tot', Desulfobrivio())
 Observable('Pop_tot', Bacteroides() + Clostridium() + Bifidobacterium() + Desulfobrivio())
 Observable('Metab_tot', Inulin() + Glucose() + Lactose() + Fructo() + ChondSulf() + Lactate())
+Observable('Bact_E100', Bacteroides(energy = '_%d' % (n_levels - 1)))
+Observable('Bact_E90', Bacteroides(energy = '_%d' % (n_levels - 2)))
+Observable('Bact_E80', Bacteroides(energy = '_%d' % (n_levels - 3)))
+Observable('Bact_E70', Bacteroides(energy = '_%d' % (n_levels - 4)))
 
 obs_to_plot = ['Clost_tot', 'Bifido_tot', 'Desulfo_tot', 'Bact_tot']
 
@@ -114,6 +118,8 @@ Expression('k_Clost_Inulin_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot 
 [Rule('ClostEatInulin_Hungry_%d_%d' % (i,i+1), Clostridium(energy='_%d' % i) + Inulin() >> Clostridium(energy= '_%d' % (i+1)), k_Clost_Inulin_Hungry)
  for i in range(0, hung_threshold)]
 
+#todo we multiplied by 10, why??
+#todo increase energy by chunks, decrease rate constant, change n_levels to 100, add species for new energies above n_levels
 n_Desulfo_Choldsulf = 250
 Parameter('k_Desulfo_ChondSulf_Basal', 0)
 #Parameter('k_Desulfo_ChondSulf_Hungry', 10)
@@ -374,7 +380,7 @@ Rule('Bifido_creation', None >> Bifidobacterium(energy = '_%d' % (n_levels - 1),
 print(model.rules)
 
 #simulations
-n_steps = 1000
+n_steps = 5000
 t_span = np.linspace(0, n_steps*t_step, int(n_steps)*1+1)
 sim = ScipyOdeSimulator(model, t_span, verbose = True)
 result = sim.run()
@@ -397,13 +403,20 @@ print(result.observables['Pop_tot'])
 plt.tight_layout()
 
 plt.figure()
-x, pops, label = read_Gutlogo('populations-3.csv')
+x, pops, label = read_Gutlogo('populations-4.csv')
 for y, l in zip(pops, label):
     plt.plot(x, y, label=l)
 
 plt.xlabel('Time (number of time steps)')
 plt.ylabel('Population (number of agents)')
 plt.title('Kinetics Model of Gut Microbiome')
+plt.legend(loc=0)
+
+plt.figure()
+for obs in ['Bact_E100', 'Bact_E90', 'Bact_E80', 'Bact_E70']:
+    plt.plot(range(n_steps + 1), result.observables[obs], label = obs)
+plt.xlabel('time (number of time steps)')
+plt.ylabel('# of cells')
 plt.legend(loc=0)
 
 plt.show()
