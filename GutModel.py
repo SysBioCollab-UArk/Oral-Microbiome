@@ -117,7 +117,7 @@ for i in range(1, len(Hungry_bact)):
 Observable('Hungry_tot', Hungry_obs)
 
 # metabolite production rules
-Parameter('k_Inulin_prod', 10/t_step)
+Parameter('k_Inulin_prod', 1000/t_step) #10/t_step)
 Parameter('k_Glucose_prod', 30/t_step)
 Parameter('k_Lactose_prod', 15/t_step)
 Parameter('k_Fructo_prod', 25/t_step)
@@ -139,7 +139,7 @@ n_Bact_Inulin = 1  # energy increase in gutlogo code
 # Parameter('k_Bact_Inulin_Basal', 0)
 # Parameter('k_Bact_Inulin_Hungry', 10)
 Expression('k_Bact_Inulin_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot < 1)),
-                                             (n_Bact_Inulin/(Metab_tot*Hungry_tot)/t_step, True)))
+                                             (10000 * n_Bact_Inulin/(Metab_tot*Hungry_tot)/t_step, True)))
 # [Rule('BactEatInulin_Basal_%d_%d' % (i, i+deltaE_25),
 #       Bacteroides(energy='_%d' % i) + Inulin() >> Bacteroides(energy='_%d' % (i+deltaE_25)), k_Bact_Inulin_Basal)
 #  for i in range(hung_threshold, n_levels - 1)]
@@ -160,8 +160,7 @@ Expression('k_Clost_Inulin_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot 
       k_Clost_Inulin_Hungry)
  for i in range(hung_threshold + 1)]
 
-# todo we multiplied by 10, why??
-# todo increase energy by chunks, decrease rate constant, change n_levels to 100, add species for new energies above n_levels
+
 n_Desulfo_Choldsulf = 1
 # Parameter('k_Desulfo_ChondSulf_Basal', 0)
 # Parameter('k_Desulfo_ChondSulf_Hungry', 10)
@@ -299,8 +298,7 @@ Parameter('k_Bifido_Lactate', 0.005/t_step)
 Rule('BifidoMakeLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_Bifido_Lactate)
 
 # energy loss rules
-# TODO: turn energy loss back on
-Parameter('k_energy_loss', 0)  # 1/(1440/n_levels * t_step))
+Parameter('k_energy_loss', 1/(1440/n_levels * t_step))
 
 [Rule('Bact_Loss_%d_%d' % (i, i-1),
       Bacteroides(energy='_%d' % i) >> Bacteroides(energy='_%d' % (i-1)), k_energy_loss)
@@ -334,10 +332,10 @@ td_Bact = 330*t_step
 td_Clost = 330*t_step
 td_Desulfo = 330*t_step
 td_Bifido = 330*t_step
-Parameter('k_Bact_division', np.log(2)/td_Bact)
-Parameter('k_Clost_division', np.log(2)/td_Clost)
-Parameter('k_Desulfo_division', np.log(2)/td_Desulfo)
-Parameter('k_Bifido_division', np.log(2)/td_Bifido)
+Parameter('k_Bact_division', (np.log(2)/td_Bact))
+Parameter('k_Clost_division', (np.log(2)/td_Bact))
+Parameter('k_Desulfo_division', (np.log(2)/td_Bact))
+Parameter('k_Bifido_division', (np.log(2)/td_Bact))
 
 # bacteria division rules
 [Rule('Bact_divides_%d' % i, Bacteroides(energy='_%d' % i) >>
@@ -357,8 +355,7 @@ Parameter('k_Bifido_division', np.log(2)/td_Bifido)
  for i in range(div_threshold, n_levels + deltaE_50)]
 
 # death rules
-# TODO: turn death rules back on
-Parameter('k_Death', 0)  # 1/t_step)
+Parameter('k_Death', 1/t_step)
 Rule('Bact_death', Bacteroides(energy='_0') >> None, k_Death)
 Rule('Clost_death', Clostridium(energy='_0') >> None, k_Death)
 Rule('Desulfo_death', Desulfobrivio(energy='_0') >> None, k_Death)
@@ -366,8 +363,7 @@ Rule('Bifido_death', Bifidobacterium(energy='_0') >> None, k_Death)
 
 # removal rules
 
-# TODO: turn the outflow back on
-flow_rate = 0  # 2.22  # cm/min
+flow_rate = 2.22  # cm/min
 # 7.98 cm is the length of an element; there are 100 total elements; 60 seconds per minute
 Parameter('k_Bact_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
 Parameter('k_Clost_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
