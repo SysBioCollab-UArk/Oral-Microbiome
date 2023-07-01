@@ -8,7 +8,7 @@ from sympy import Piecewise
 # test comment
 Model()
 n_levels = 10
-t_step = 26.3  # seconds
+t_step = 60 # 26.3 seconds
 hung_threshold = int(0.8*n_levels - 1)
 deltaE_50 = int(np.ceil(n_levels/2))
 deltaE_25 = int(np.ceil(deltaE_50/2))
@@ -117,7 +117,7 @@ for i in range(1, len(Hungry_bact)):
 Observable('Hungry_tot', Hungry_obs)
 
 # metabolite production rules
-Parameter('k_Inulin_prod', 1000/t_step) #10/t_step)
+Parameter('k_Inulin_prod', 10/t_step) #10/t_step)
 Parameter('k_Glucose_prod', 30/t_step)
 Parameter('k_Lactose_prod', 15/t_step)
 Parameter('k_Fructo_prod', 25/t_step)
@@ -139,7 +139,7 @@ n_Bact_Inulin = 1  # energy increase in gutlogo code
 # Parameter('k_Bact_Inulin_Basal', 0)
 # Parameter('k_Bact_Inulin_Hungry', 10)
 Expression('k_Bact_Inulin_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot < 1)),
-                                             (10000 * n_Bact_Inulin/(Metab_tot*Hungry_tot)/t_step, True)))
+                                             (n_Bact_Inulin/(Metab_tot*Hungry_tot)/t_step, True)))
 # [Rule('BactEatInulin_Basal_%d_%d' % (i, i+deltaE_25),
 #       Bacteroides(energy='_%d' % i) + Inulin() >> Bacteroides(energy='_%d' % (i+deltaE_25)), k_Bact_Inulin_Basal)
 #  for i in range(hung_threshold, n_levels - 1)]
@@ -333,9 +333,9 @@ td_Clost = 330*t_step
 td_Desulfo = 330*t_step
 td_Bifido = 330*t_step
 Parameter('k_Bact_division', (np.log(2)/td_Bact))
-Parameter('k_Clost_division', (np.log(2)/td_Bact))
-Parameter('k_Desulfo_division', (np.log(2)/td_Bact))
-Parameter('k_Bifido_division', (np.log(2)/td_Bact))
+Parameter('k_Clost_division', (np.log(2)/td_Clost))
+Parameter('k_Desulfo_division', (np.log(2)/td_Desulfo))
+Parameter('k_Bifido_division', (np.log(2)/td_Bifido))
 
 # bacteria division rules
 [Rule('Bact_divides_%d' % i, Bacteroides(energy='_%d' % i) >>
