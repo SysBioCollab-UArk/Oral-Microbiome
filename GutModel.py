@@ -31,16 +31,37 @@ Monomer('Desulfobrivio', ['energy', 'stuck'],
 
 print(model.monomers)
 
-Parameter('Bact_0', 5490)
-Parameter('Clost_0', 921)
-Parameter('Bifido_0', 23562)
-Parameter('Desulfo_0', 70)
+bact_init_tot = 5490
+clost_init_tot = 921
+bifido_init_tot = 23562
+desulfo_init_tot = 70
 
-Initial(Bacteroides(energy='_%d' % (n_levels - 1), stuck='u'), Bact_0)
-Initial(Clostridium(energy='_%d' % (n_levels - 1), stuck='u'), Clost_0)
-Initial(Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='u'), Bifido_0)
-Initial(Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='u'), Desulfo_0)
+seedpercent = 0.05 # percentage of initial cells that are perm stuck
 
+Parameter('Bact_unstuck_0', round((bact_init_tot * (1-seedpercent))))
+Parameter('Clost_unstuck_0', round(clost_init_tot * (1-seedpercent)))
+Parameter('Bifido_unstuck_0', round(bifido_init_tot * (1-seedpercent)))
+Parameter('Desulfo_unstuck_0', round(desulfo_init_tot * (1-seedpercent)))
+
+Initial(Bacteroides(energy='_%d' % (n_levels - 1), stuck='u'), Bact_unstuck_0)
+Initial(Clostridium(energy='_%d' % (n_levels - 1), stuck='u'), Clost_unstuck_0)
+Initial(Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='u'), Bifido_unstuck_0)
+Initial(Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='u'), Desulfo_unstuck_0)
+
+Parameter('Bact_permstuck_0', bact_init_tot - Bact_unstuck_0.value)
+Parameter('Clost_permstuck_0', clost_init_tot - Clost_unstuck_0.value)
+Parameter('Bifido_permstuck_0', bifido_init_tot - Bifido_unstuck_0.value)
+Parameter('Desulfo_permstuck_0', desulfo_init_tot - Desulfo_unstuck_0.value)
+
+Initial(Bacteroides(energy='_%d' % (n_levels - 1), stuck='p'), Bact_permstuck_0)
+Initial(Clostridium(energy='_%d' % (n_levels - 1), stuck='p'), Clost_permstuck_0)
+Initial(Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='p'), Bifido_permstuck_0)
+Initial(Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='p'), Desulfo_permstuck_0)
+
+print(model.parameters)
+for ic in model.initial_conditions:
+    print(ic)
+quit()
 # metabolites
 Monomer('Inulin')
 Monomer('Glucose')
@@ -87,6 +108,7 @@ Observable('Lactate_tot', Lactate())
 # Observable('Bact_E80', Bacteroides(energy='_%d' % (n_levels - 3)))
 # Observable('Bact_E70', Bacteroides(energy='_%d' % (n_levels - 4)))
 # Observable('Bact_E0', Bacteroides(energy='_0'))
+
 obs_Bact_0_100 = [Observable('Bact_E%d' % i, Bacteroides(energy='_%d' % i)) for i in range(n_levels)]
 obs_Bact_gt_100 = [Observable('Bact_E%d' % i, Bacteroides(energy='_%d' % i)) for i in range(n_levels, n_levels +
                                                                                             deltaE_50)]
@@ -336,7 +358,25 @@ Parameter('k_Bact_division', (np.log(2)/td_Bact))
 Parameter('k_Clost_division', (np.log(2)/td_Clost))
 Parameter('k_Desulfo_division', (np.log(2)/td_Desulfo))
 Parameter('k_Bifido_division', (np.log(2)/td_Bifido))
-
+#todo; account for number of cells during division like in gutlogo code below
+#todo; play around in gutlogo code on netogo; isolate the cause of growth at 350 timesteps
+#todo; double check that their stuck rules match their paper (stuck --> stuck + unstuck)
+"""
+to reproduceBact
+;; reproduce the chosen turtle
+  if energy > 50 and count turtles-here < 1000[ ;;turtles-here check to model space limit
+    let tmp (energy / 2 )
+    set energy (tmp) ;; parent's energy is halved
+    hatch 1 [
+      rt random-float 360
+      set energy tmp ;; child gets half of parent's energy
+      set isSeed false
+      set isStuck false
+	    set age 0
+    ]
+  ]
+end
+"""
 # bacteria division rules
 [Rule('Bact_divides_%d' % i, Bacteroides(energy='_%d' % i) >>
       Bacteroides(energy='_%d' % (i/2)) + Bacteroides(energy='_%d' % ((i + 1)/2), stuck='u'), k_Bact_division)
@@ -354,12 +394,20 @@ Parameter('k_Bifido_division', (np.log(2)/td_Bifido))
       Bifidobacterium(energy='_%d' % (i/2)) + Bifidobacterium(energy='_%d' % ((i + 1)/2), stuck='u'), k_Bifido_division)
  for i in range(div_threshold, n_levels + deltaE_50)]
 
-# death rules
-Parameter('k_Death', 1/t_step)
-Rule('Bact_death', Bacteroides(energy='_0') >> None, k_Death)
-Rule('Clost_death', Clostridium(energy='_0') >> None, k_Death)
-Rule('Desulfo_death', Desulfobrivio(energy='_0') >> None, k_Death)
-Rule('Bifido_death', Bifidobacterium(energy='_0') >> None, k_Death)
+# death by energy
+Parameter('k_Death_Energy', 1E6)  # death should be instant when energy = 0
+Rule('Bact_death_energy', Bacteroides(energy='_0') >> None, k_Death_Energy)
+Rule('Clost_death_energy', Clostridium(energy='_0') >> None, k_Death_Energy)
+Rule('Desulfo_death_energy', Desulfobrivio(energy='_0') >> None, k_Death_Energy)
+Rule('Bifido_death_energy', Bifidobacterium(energy='_0') >> None, k_Death_Energy)
+
+# death by age
+
+Parameter('k_Death_Age', 1/(1000 * t_step))  # death should be instant when energy = 0
+Rule('Bact_death_age', Bacteroides() >> None, k_Death_Age)
+Rule('Clost_death_age', Clostridium() >> None, k_Death_Age)
+Rule('Desulfo_death_age', Desulfobrivio() >> None, k_Death_Age)
+Rule('Bifido_death_age', Bifidobacterium() >> None, k_Death_Age)
 
 # removal rules
 
@@ -418,16 +466,22 @@ Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck='p'
 
 # TODO: turn on inflow rules
 # bacterial creation rules
-Parameter('k_Bact_creation', 0)
+tick_inflow = 480 * 60 # seconds, (480 ticks, 1 minute per tick, = 8 hours)
+
+inconcbact = 0 # number of bacteroides added every 480 steps
+Parameter('k_Bact_creation', inconcbact/tick_inflow)
 Rule('Bact_creation', None >> Bacteroides(energy='_%d' % (n_levels - 1), stuck='u'), k_Bact_creation)
 
-Parameter('k_Clost_creation', 0)
+inconcclost = 0
+Parameter('k_Clost_creation', inconcclost/tick_inflow)
 Rule('Clost_creation', None >> Clostridium(energy='_%d' % (n_levels - 1), stuck='u'), k_Clost_creation)
 
-Parameter('k_Desulfo_creation', 0)
+inconcdesulfo = 0
+Parameter('k_Desulfo_creation', inconcdesulfo/tick_inflow)
 Rule('Desulfo_creation', None >> Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='u'), k_Desulfo_creation)
 
-Parameter('k_Bifido_creation', 0)
+inconcbifido = 0
+Parameter('k_Bifido_creation', inconcbifido/tick_inflow)
 Rule('Bifido_creation', None >> Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='u'), k_Bifido_creation)
 
 print(model.rules)
@@ -437,7 +491,7 @@ for ic in model.initial_conditions:
 # quit()
 
 # simulations
-n_steps = 5000
+n_steps = 1000 # 5000
 t_span = np.linspace(0, n_steps*t_step, int(n_steps)*1+1)
 sim = ScipyOdeSimulator(model, t_span, verbose=True)
 result = sim.run()
@@ -508,3 +562,26 @@ plt.xlim(left=3000)
 plt.legend(loc=0)
 
 plt.show()
+
+
+#todo there seems to be a carrying capacity that does not line up, why?; they all die of age later; "turtles-here" what is this?
+"""
+**age**: Positive integer value representing the number of ticks the bacteria has been alive for. Used to determine if
+ a bacteria would reproduce on the current tick. Seed colony bacteria are given a random age from 0 to 1000.
+ 
+ Offspring bacteria can NEVER be stuck; age starts at 0
+ 
+ bacteria must be a certain age to reproduce
+ 
+ incoming bacteria have a randomized age form 0 to 1000
+ 
+ if (age mod clostDoub = 0 and age != 0)[
+      reproduceBact
+    ]
+ set age (age + 1)
+ 
+ bact - 8500
+"""
+
+#todo; model the unstuck, permstuck, stuck thing--exponential function? not constant?
+#todo; look at similar literature from citations regarding basic biology
