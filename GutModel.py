@@ -58,10 +58,6 @@ Initial(Clostridium(energy='_%d' % (n_levels - 1), stuck='p'), Clost_permstuck_0
 Initial(Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='p'), Bifido_permstuck_0)
 Initial(Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='p'), Desulfo_permstuck_0)
 
-print(model.parameters)
-for ic in model.initial_conditions:
-    print(ic)
-quit()
 # metabolites
 Monomer('Inulin')
 Monomer('Glucose')
@@ -429,8 +425,8 @@ midStuckConc = 10  # concentration
 lowStuckBound = 0.02  # probability
 
 Expression('k_Bact_stuck', Piecewise(
- (0, maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step < lowStuckBound),
- (maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step, True)))
+    (0, maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step < lowStuckBound),
+    (maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step, True)))
 Parameter('k_Bact_unstuck', 0.1/t_step)
 Parameter('k_Bact_permstuck', 0.05/t_step)
 
@@ -438,8 +434,8 @@ Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck='s'), k_Bact_stuck
 Rule('Bact_permstuck', Bacteroides(stuck='s') >> Bacteroides(stuck='p'), k_Bact_permstuck)
 
 Expression('k_Clost_stuck', Piecewise(
- (0, maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step < lowStuckBound),
- (maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step, True)))
+    (0, maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step < lowStuckBound),
+    (maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step, True)))
 Parameter('k_Clost_unstuck', 0.1/t_step)
 Parameter('k_Clost_permstuck', 0.05/t_step)
 
@@ -447,8 +443,8 @@ Rule('Clost_stuck', Clostridium(stuck='u') | Clostridium(stuck='s'), k_Clost_stu
 Rule('Clost_permstuck', Clostridium(stuck='s') >> Clostridium(stuck='p'), k_Clost_permstuck)
 
 Expression('k_Desulfo_stuck', Piecewise(
- (0, maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step < lowStuckBound),
- (maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step, True)))
+    (0, maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step < lowStuckBound),
+    (maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step, True)))
 Parameter('k_Desulfo_unstuck', 0.1/t_step)
 Parameter('k_Desulfo_permstuck', 0.05/t_step)
 
@@ -456,8 +452,8 @@ Rule('Desulfo_stuck', Desulfobrivio(stuck='u') | Desulfobrivio(stuck='s'), k_Des
 Rule('Desulfo_permstuck', Desulfobrivio(stuck='s') >> Desulfobrivio(stuck='p'), k_Desulfo_permstuck)
 
 Expression('k_Bifido_stuck', Piecewise(
- (0, maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step < lowStuckBound),
- (maxStuckChance * midStuckConc / (midStuckConc + Pop_tot) / t_step, True)))
+    (0, maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step < lowStuckBound),
+    (maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step, True)))
 Parameter('k_Bifido_unstuck', 0.1/t_step)
 Parameter('k_Bifido_permstuck', 0.05/t_step)
 
@@ -585,3 +581,7 @@ plt.show()
 
 #todo; model the unstuck, permstuck, stuck thing--exponential function? not constant?
 #todo; look at similar literature from citations regarding basic biology
+
+#todo; run gutlogo again under simplistic conditions
+# (turn stuck variables off; use one bacteria type) run that-save the output. Can we reproduce that with our model, by
+# reintroducing one variable at a time
