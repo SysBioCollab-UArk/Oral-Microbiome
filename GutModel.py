@@ -7,6 +7,106 @@ from ReadGutlogo import read_Gutlogo
 
 Model()
 
+# PARAMETER SETTINGS FROM GUTLOGO
+
+# initial bacterial numbers (#)
+# "initnumclosts",
+Parameter("initnumclosts", 921)
+# "initnumdesulfos",
+Parameter("initnumdesulfos", 70)
+# "initnumbifidos",
+Parameter("initnumbifidos", 23562)
+# "initnumbacteroides",
+Parameter("initnumbacteroides", 5490)
+
+
+# inflow of bacteria (#/480 steps)
+# "inconcbifido",
+Parameter("inconcbifido", 0)
+# "inconcclosts",
+Parameter("inconcclosts", 0)
+# "inconcbacteroides",
+Parameter("inconcbacteroides", 0)
+# "inconcdesulfos",
+Parameter("inconcdesulfos", 0)
+
+
+# Bacterial doubling times (steps)
+# "bacteroiddoub",
+Parameter("bacteroiddoub")
+# "clostdoub",
+Parameter("clostdoub")
+# "bifidodoub",
+Parameter("bifidodoub")
+# "desulfodoub",
+Parameter("desulfodoub")
+#todo commentout variables, and change parameteres to expressions
+
+# inflow of metabolites per timestep (#/step)
+# "inflowfo",
+Parameter("inflowfo", 25)
+# "inflowcs",
+Parameter("inflowcs", 0.1)
+# "inflowglucose"
+Parameter("inflowglucose", 30)
+# "inflowlactose",
+Parameter("inflowlactose", 15)
+# "inflowinulin",
+Parameter("inflowinulin", 10)
+# "inflowlactate",
+Parameter("inflowlactate", 0)
+
+
+# number of lactate molecules produced by bifido (#/step)
+# "bifido_lactate_production",
+Parameter("bifido_lactate_production", 0.005)
+
+# parameters of sticking and unsticking of bacteria in the gut lining
+# "seedpercent", (fraction)
+#todo change to expression below
+Parameter("seedpercent")
+# "seedchance", (probability/step)
+Parameter("seedchance", 0.05)
+# "unstuckchance", (probability/step)
+Parameter("unstuckchance", 0.1)
+# "lowstuckbound", (probability/step)
+Parameter("lowstuckbound", 0.02)
+# "maxstuckchance", (probability/step)
+Parameter("maxstuckchance", 0.5)
+# "midstuckconc", (#) todo this variable is not being exported to the results file by gutlogo
+Parameter("midstuckconc", 10)
+
+
+# "flowdist", # patches / min
+#todo change to expression below
+Parameter("flowdist")
+# "tickinflow", # steps
+Parameter("tickinflow")
+
+#todo get to a point where you can run the simulation and get to the same results as before
+
+# "reservefraction",**NOT APPLICABLE
+# A 'reserveFraction' of greater than zero will activate the reserve metabolite module of the simulation. This module
+# inhibits the bacteria from accessing a portion of the metabolites. The portion of metabolite avaliable is a function
+# of position down the gut. Therefore, a colony further down the gut would have access to a larger portion of the
+# remaining bacteria than a colony closer to the start.
+
+# "absorption", **NOT APPLICABLE
+# Absorption represents the percentage of metabolites that pass through the gut into the bloodstream. An absorption
+# check is done every tick and the percentage of metabolite is removed.
+
+
+# "randdist",**NOT APPLICABLE
+# DISABLED. This random movement accounts for the turbulence in the flow, motility of the bacteria, and other similar
+# movements. Moves the bacteria in a random direction by the length of the randDist variable.
+
+# "testconst",**NOT APPLICABLE
+# "plots-on?", **NOT APPLICABLE
+
+
+
+
+
 n_levels = 10
 t_step = 60  # 26.3 seconds
 hung_threshold = int(0.8*n_levels - 1)
@@ -29,27 +129,28 @@ Monomer('Desulfobrivio', ['energy', 'stuck'], {'energy': ['_%d' % i for i in ran
                                                'stuck': ['u', 's', 'p']})
 
 # total # of initial bacteria (unstuck and stuck)
-bact_init_tot = 5490
-clost_init_tot = 921
-bifido_init_tot = 23562
-desulfo_init_tot = 70
+# initnumbacteroides = 5490
+# initnumclosts = 921
+# initnumbifidos = 23562
+# todo: initnumdesulfos 70.0, do this for all of the other parameters
+# initnumdesulfos = 70
 
 seedpercent = 0.05  # fraction of initial cells that are permanently stuck
 
-Parameter('Bact_unstuck_0', round((bact_init_tot * (1-seedpercent))))
-Parameter('Clost_unstuck_0', round(clost_init_tot * (1-seedpercent)))
-Parameter('Bifido_unstuck_0', round(bifido_init_tot * (1-seedpercent)))
-Parameter('Desulfo_unstuck_0', round(desulfo_init_tot * (1-seedpercent)))
+Expression('Bact_unstuck_0', initnumbacteroides * (1-seedpercent))
+Expression('Clost_unstuck_0', initnumclosts * (1-seedpercent))
+Expression('Bifido_unstuck_0', initnumbifidos * (1-seedpercent))
+Expression('Desulfo_unstuck_0', initnumdesulfos * (1-seedpercent))
 
 Initial(Bacteroides(energy='_%d' % (n_levels - 1), stuck='u'), Bact_unstuck_0)
 Initial(Clostridium(energy='_%d' % (n_levels - 1), stuck='u'), Clost_unstuck_0)
 Initial(Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='u'), Bifido_unstuck_0)
 Initial(Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='u'), Desulfo_unstuck_0)
 
-Parameter('Bact_permstuck_0', bact_init_tot - Bact_unstuck_0.value)
-Parameter('Clost_permstuck_0', clost_init_tot - Clost_unstuck_0.value)
-Parameter('Bifido_permstuck_0', bifido_init_tot - Bifido_unstuck_0.value)
-Parameter('Desulfo_permstuck_0', desulfo_init_tot - Desulfo_unstuck_0.value)
+Expression('Bact_permstuck_0', initnumbacteroides - Bact_unstuck_0)
+Expression('Clost_permstuck_0', initnumclosts - Clost_unstuck_0)
+Expression('Bifido_permstuck_0', initnumbifidos - Bifido_unstuck_0)
+Expression('Desulfo_permstuck_0', initnumdesulfos - Desulfo_unstuck_0)
 
 Initial(Bacteroides(energy='_%d' % (n_levels - 1), stuck='p'), Bact_permstuck_0)
 Initial(Clostridium(energy='_%d' % (n_levels - 1), stuck='p'), Clost_permstuck_0)
@@ -127,19 +228,19 @@ Observable('Metab_tot', Inulin() + Glucose() + Lactose() + Fructo() + ChondSulf(
 # RULES
 
 # metabolite production rules
-Parameter('k_Inulin_prod', 10/t_step)  # 10/t_step)
-Parameter('k_Glucose_prod', 30/t_step)
-Parameter('k_Lactose_prod', 15/t_step)
-Parameter('k_Fructo_prod', 25/t_step)
-Parameter('k_ChondSulf_prod', 0.1/t_step)
-Parameter('k_Lactate_prod', 0/t_step)
+Expression('k_inflowinulin', inflowinulin/t_step)  # 10/t_step)
+Expression('k_inflowglucose', inflowglucose/t_step) #30
+Expression('k_inflowlactose', inflowlactose/t_step) #15
+Expression('k_inflowfo', inflowfo/t_step) #25
+Expression('k_inflowcs', inflowcs/t_step) #0.1
+Expression('k_inflowlactate', inflowlactate/t_step) #0
 
-Rule('Inulin_prod', None >> Inulin(), k_Inulin_prod)
-Rule('Glucose_prod', None >> Glucose(), k_Glucose_prod)
-Rule('Lactose_prod', None >> Lactose(), k_Lactose_prod)
-Rule('Fructo_prod', None >> Fructo(), k_Fructo_prod)
-Rule('ChondSulf_prod', None >> ChondSulf(), k_ChondSulf_prod)
-Rule('Lactate_prod', None >> Lactate(), k_Lactate_prod)
+Rule('Inulin_prod', None >> Inulin(), k_inflowinulin)
+Rule('Glucose_prod', None >> Glucose(), k_inflowglucose)
+Rule('Lactose_prod', None >> Lactose(), k_inflowlactose)
+Rule('Fructo_prod', None >> Fructo(), k_inflowfo)
+Rule('ChondSulf_prod', None >> ChondSulf(), k_inflowcs)
+Rule('Lactate_prod', None >> Lactate(), k_inflowlactate)
 
 # bacterial eating rules
 #  k_hungry = 1/(N*M), N = total number of hungry bacteria, M = total number of metabolites
@@ -237,8 +338,8 @@ Expression('k_Bifido_Fructo_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot
       k_Bifido_Fructo_Hungry) for i in range(hung_threshold + 1)]
 
 # lactate production rule
-Parameter('k_BifidoMakesLactate', 0.005/t_step)
-Rule('BifidoMakesLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_BifidoMakesLactate)
+Expression('k_bifido_lactate_production', bifido_lactate_production/t_step)
+Rule('BifidoMakesLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_bifido_lactate_production)
 
 # energy loss rules
 Parameter('k_energy_loss', 1/(1440/n_levels * t_step))  # 1440 minutes = 24 hours, time cells can survive w/o eating
@@ -274,14 +375,14 @@ Parameter('k_energy_loss', 1/(1440/n_levels * t_step))  # 1440 minutes = 24 hour
 #     per time step
 
 div_threshold = int(n_levels/2)
-td_Bact = 330*t_step  # doubling time
-td_Clost = 330*t_step
-td_Desulfo = 330*t_step
-td_Bifido = 330*t_step
-Parameter('k_Bact_division', (np.log(2)/td_Bact))  # division rate: X = Xo * exp(kt), X/Xo = 2, t = td
-Parameter('k_Clost_division', (np.log(2)/td_Clost))
-Parameter('k_Desulfo_division', (np.log(2)/td_Desulfo))
-Parameter('k_Bifido_division', (np.log(2)/td_Bifido))
+bacteroiddoub = 330*t_step  # doubling time
+clostdoub = 330*t_step
+desulfodoub = 330*t_step
+bifidodoub = 330*t_step
+Parameter('k_Bact_division', (np.log(2)/bacteroiddoub))  # division rate: X = Xo * exp(kt), X/Xo = 2, t = td
+Parameter('k_Clost_division', (np.log(2)/clostdoub))
+Parameter('k_Desulfo_division', (np.log(2)/desulfodoub))
+Parameter('k_Bifido_division', (np.log(2)/bifidodoub))
 # todo; account for number of cells during division like in gutlogo code below
 # todo; play around in gutlogo code on netogo; isolate the cause of growth at 350 timesteps
 # todo; double check that their stuck rules match their paper (stuck --> stuck + unstuck)
@@ -333,7 +434,8 @@ Rule('Desulfo_death_age', Desulfobrivio() >> None, k_Death_Age)
 Rule('Bifido_death_age', Bifidobacterium() >> None, k_Death_Age)
 
 # removal rules (by flow)
-flow_rate = 2.22  # cm/min
+flowdist = 0.28
+flow_rate = flowdist*7.98 # flowdist in patches/min #2.22  # cm/min
 # 7.98 cm is the length of an element; there are 100 total elements; 60 seconds per minute
 Parameter('k_Bact_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
 Parameter('k_Clost_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
@@ -346,46 +448,47 @@ Rule('Desulfo_unstuck_removal', Desulfobrivio(stuck='u') >> None, k_Desulfo_unst
 Rule('Bifido_unstuck_removal', Bifidobacterium(stuck='u') >> None, k_Bifido_unstuck_removed)
 
 # stuck rules
-Parameter('maxStuckChance', 0.5)  # probability
-Parameter('midStuckConc', 10)  # concentration (# of bacteria)
-Parameter('lowStuckBound', 0.02)  # probability
-Expression('k_stuck', Piecewise((0, maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step < lowStuckBound),
-                                (maxStuckChance * (1 - Pop_tot / (midStuckConc + Pop_tot)) / t_step, True)))
-Parameter('k_unstuck', 0.1/t_step)
-Parameter('k_permstuck', 0.05/t_step)
+#Parameter('maxstuckchance', 0.5)  # probability per step
+#Parameter('midstuckconc', 10)  # concentration (# of bacteria)
+#Parameter('lowstuckbound', 0.02)  # probability per step
+Expression('k_stuck', Piecewise((0, maxstuckchance * (1 - Pop_tot / (midstuckconc + Pop_tot)) < lowstuckbound),
+                                (maxstuckchance * (1 - Pop_tot / (midstuckconc + Pop_tot)) / t_step, True)))
+Expression('k_unstuckchance', unstuckchance/t_step)  # probability per step #0.1
+Expression('k_seedchance', seedchance/t_step)  # probability per step #0.05
 
-Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck='s'), k_stuck, k_unstuck)
-Rule('Bact_permstuck', Bacteroides(stuck='s') >> Bacteroides(stuck='p'), k_permstuck)
+Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck='s'), k_stuck, k_unstuckchance)
+Rule('Bact_permstuck', Bacteroides(stuck='s') >> Bacteroides(stuck='p'), k_seedchance)
 
-Rule('Clost_stuck', Clostridium(stuck='u') | Clostridium(stuck='s'), k_stuck, k_unstuck)
-Rule('Clost_permstuck', Clostridium(stuck='s') >> Clostridium(stuck='p'), k_permstuck)
+Rule('Clost_stuck', Clostridium(stuck='u') | Clostridium(stuck='s'), k_stuck, k_unstuckchance)
+Rule('Clost_permstuck', Clostridium(stuck='s') >> Clostridium(stuck='p'), k_seedchance)
 
-Rule('Desulfo_stuck', Desulfobrivio(stuck='u') | Desulfobrivio(stuck='s'), k_stuck, k_unstuck)
-Rule('Desulfo_permstuck', Desulfobrivio(stuck='s') >> Desulfobrivio(stuck='p'), k_permstuck)
+Rule('Desulfo_stuck', Desulfobrivio(stuck='u') | Desulfobrivio(stuck='s'), k_stuck, k_unstuckchance)
+Rule('Desulfo_permstuck', Desulfobrivio(stuck='s') >> Desulfobrivio(stuck='p'), k_seedchance)
 
-Rule('Bifido_stuck', Bifidobacterium(stuck='u') | Bifidobacterium(stuck='s'), k_stuck, k_unstuck)
-Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck='p'), k_permstuck)
+Rule('Bifido_stuck', Bifidobacterium(stuck='u') | Bifidobacterium(stuck='s'), k_stuck, k_unstuckchance)
+Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck='p'), k_seedchance)
 
 # TODO: turn on inflow rules
 # bacteria inflow rules
-tick_inflow = 480 * 60  # s (480 ticks, 1 minute per tick = 8 hours)
+tickinflow = 480 * t_step  # s (480 ticks, 1 minute per tick = 8 hours)
 
-inconcbact = 0  # number of bacteroides added every 480 steps
-Parameter('k_Bact_creation', inconcbact/tick_inflow)
+# inconcbact = 0  # number of bacteroides added every 480 steps
+Expression('k_Bact_creation', inconcbacteroides/tickinflow)
 Rule('Bact_creation', None >> Bacteroides(energy='_%d' % (n_levels - 1), stuck='u'), k_Bact_creation)
 
-inconcclost = 0
-Parameter('k_Clost_creation', inconcclost/tick_inflow)
+#inconcclost = 0
+Expression('k_Clost_creation', inconcclosts/tickinflow)
 Rule('Clost_creation', None >> Clostridium(energy='_%d' % (n_levels - 1), stuck='u'), k_Clost_creation)
 
-inconcdesulfo = 0
-Parameter('k_Desulfo_creation', inconcdesulfo/tick_inflow)
+#inconcdesulfo = 0
+Expression('k_Desulfo_creation', inconcdesulfos/tickinflow)
 Rule('Desulfo_creation', None >> Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='u'), k_Desulfo_creation)
 
-inconcbifido = 0
-Parameter('k_Bifido_creation', inconcbifido/tick_inflow)
+#inconcbifido = 0
+Expression('k_Bifido_creation', inconcbifido/tickinflow)
 Rule('Bifido_creation', None >> Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='u'), k_Bifido_creation)
 
+#expr
 # print(model.parameters_rules())
 # print()
 # print(model.expressions)
@@ -395,113 +498,114 @@ Rule('Bifido_creation', None >> Bifidobacterium(energy='_%d' % (n_levels - 1), s
 # for ic in model.initial_conditions:
 #     print(ic)
 # quit()
+if __name__ == '__main__':
+    quit()
+    # simulations
+    n_steps = 1000  # 5000
+    t_span = np.linspace(0, n_steps*t_step, int(n_steps)*1+1)
+    sim = ScipyOdeSimulator(model, t_span, verbose=True)
+    result = sim.run()
 
-# simulations
-n_steps = 1000  # 5000
-t_span = np.linspace(0, n_steps*t_step, int(n_steps)*1+1)
-sim = ScipyOdeSimulator(model, t_span, verbose=True)
-result = sim.run()
+    for obs in obs_to_plot:
+        plt.plot(range(n_steps + 1), result.observables[obs], label=obs)
+        plt.xlabel('time (number of time steps)')
+        plt.ylabel('# of cells')
+        # plt.yscale('log', base = 10)
+    plt.legend(loc=0)
+    plt.tight_layout()
 
-for obs in obs_to_plot:
-    plt.plot(range(n_steps + 1), result.observables[obs], label=obs)
-    plt.xlabel('time (number of time steps)')
-    plt.ylabel('# of cells')
-    # plt.yscale('log', base = 10)
-plt.legend(loc=0)
-plt.tight_layout()
+    # print(result.observables['Bact_tot'])
+    # print(n_steps*t_step)
+    # print(t_span)
+    # print(result.expressions['k_Bact_Inulin_Hungry'])
+    # print(result.observables['Hungry_tot'])
+    # print(result.observables['Metab_tot'])
+    # print(result.observables['Pop_tot'])
 
-# print(result.observables['Bact_tot'])
-# print(n_steps*t_step)
-# print(t_span)
-# print(result.expressions['k_Bact_Inulin_Hungry'])
-# print(result.observables['Hungry_tot'])
-# print(result.observables['Metab_tot'])
-# print(result.observables['Pop_tot'])
-
-# plot GutLogo simulations
-plt.figure()
-x, pops, label = read_Gutlogo('populations-3.csv')
-for y, l in zip(pops, label):
-    plt.plot(x, y, label=l)
-plt.xlabel('Time step (tick)')
-plt.ylabel('Population (number of agents)')
-# plt.title('Kinetics Model of Gut Microbiome')
-plt.legend(loc=0)
-plt.tight_layout()
-
-plt.figure()
-x, pops, label = read_Gutlogo('populations-4.csv')
-for y, l in zip(pops, label):
-    plt.plot(x, y, label=l)
-plt.xlabel('Time (number of time steps)')
-plt.ylabel('Population (number of agents)')
-plt.title('Kinetics Model of Gut Microbiome')
-plt.legend(loc=0)
-plt.tight_layout()
-
-'''
-# plot metabolites
-plt.figure()
-for obs in [Inulin_tot, Glucose_tot, Lactose_tot, Fructo_tot, ChondSulf_tot, Lactate_tot]:
-    plt.plot(range(n_steps + 1), result.observables[obs.name], label=obs.name)
-plt.xlabel('time (number of time steps)')
-plt.ylabel('# of molecules')
-plt.legend(loc=0)
-
-# plot bacterial species at all energy levels
-for obs_0_100 in [obs_Bact_0_100, obs_Clost_0_100, obs_Bifido_0_100, obs_Desulfo_0_100]:
+    # plot GutLogo simulations
     plt.figure()
-    for obs in obs_0_100:
+    x, pops, label = read_Gutlogo('populations-3.csv')
+    for y, l in zip(pops, label):
+        plt.plot(x, y, label=l)
+    plt.xlabel('Time step (tick)')
+    plt.ylabel('Population (number of agents)')
+    # plt.title('Kinetics Model of Gut Microbiome')
+    plt.legend(loc=0)
+    plt.tight_layout()
+
+    plt.figure()
+    x, pops, label = read_Gutlogo('populations-4.csv')
+    for y, l in zip(pops, label):
+        plt.plot(x, y, label=l)
+    plt.xlabel('Time (number of time steps)')
+    plt.ylabel('Population (number of agents)')
+    plt.title('Kinetics Model of Gut Microbiome')
+    plt.legend(loc=0)
+    plt.tight_layout()
+
+    '''
+    # plot metabolites
+    plt.figure()
+    for obs in [Inulin_tot, Glucose_tot, Lactose_tot, Fructo_tot, ChondSulf_tot, Lactate_tot]:
         plt.plot(range(n_steps + 1), result.observables[obs.name], label=obs.name)
     plt.xlabel('time (number of time steps)')
-    plt.ylabel('# of cells')
-    # plt.yscale('log', base=10)
+    plt.ylabel('# of molecules')
     plt.legend(loc=0)
-
-for obs_gt_100 in [obs_Bact_gt_100, obs_Clost_gt_100, obs_Bifido_gt_100, obs_Desulfo_gt_100]:
+    
+    # plot bacterial species at all energy levels
+    for obs_0_100 in [obs_Bact_0_100, obs_Clost_0_100, obs_Bifido_0_100, obs_Desulfo_0_100]:
+        plt.figure()
+        for obs in obs_0_100:
+            plt.plot(range(n_steps + 1), result.observables[obs.name], label=obs.name)
+        plt.xlabel('time (number of time steps)')
+        plt.ylabel('# of cells')
+        # plt.yscale('log', base=10)
+        plt.legend(loc=0)
+    
+    for obs_gt_100 in [obs_Bact_gt_100, obs_Clost_gt_100, obs_Bifido_gt_100, obs_Desulfo_gt_100]:
+        plt.figure()
+        for obs in obs_gt_100:
+            plt.plot(range(n_steps + 1), result.observables[obs.name], '--', label=obs.name)
+        plt.xlabel('time (number of time steps)')
+        plt.ylabel('# of cells')
+        plt.yscale('log', base=10)
+        plt.legend(loc=0)
+    
+    # plot desulfo E6 and E12 to compare
     plt.figure()
-    for obs in obs_gt_100:
-        plt.plot(range(n_steps + 1), result.observables[obs.name], '--', label=obs.name)
+    plt.plot(range(n_steps + 1), result.observables['Desulfo_E6'], label='Desulfo_E6')
+    plt.plot(range(n_steps + 1), result.observables['Desulfo_E12'], label='Desulfo_E12')
     plt.xlabel('time (number of time steps)')
     plt.ylabel('# of cells')
-    plt.yscale('log', base=10)
+    plt.yscale('log', base=2)
+    plt.ylim(bottom=2**(-11))
+    plt.xlim(left=3000)
     plt.legend(loc=0)
+    '''
+    plt.show()
 
-# plot desulfo E6 and E12 to compare
-plt.figure()
-plt.plot(range(n_steps + 1), result.observables['Desulfo_E6'], label='Desulfo_E6')
-plt.plot(range(n_steps + 1), result.observables['Desulfo_E12'], label='Desulfo_E12')
-plt.xlabel('time (number of time steps)')
-plt.ylabel('# of cells')
-plt.yscale('log', base=2)
-plt.ylim(bottom=2**(-11))
-plt.xlim(left=3000)
-plt.legend(loc=0)
-'''
-plt.show()
+    #todo there seems to be a carrying capacity that does not line up, why?; they all die of age later; "turtles-here" what is this?
+    """
+    **age**: Positive integer value representing the number of ticks the bacteria has been alive for. Used to determine if
+     a bacteria would reproduce on the current tick. Seed colony bacteria are given a random age from 0 to 1000.
+     
+     Offspring bacteria can NEVER be stuck; age starts at 0
+     
+     bacteria must be a certain age to reproduce
+     
+     incoming bacteria have a randomized age form 0 to 1000
+     
+     if (age mod clostDoub = 0 and age != 0)[
+          reproduceBact
+        ]
+     set age (age + 1)
+     
+     bact - 8500
+    """
 
-#todo there seems to be a carrying capacity that does not line up, why?; they all die of age later; "turtles-here" what is this?
-"""
-**age**: Positive integer value representing the number of ticks the bacteria has been alive for. Used to determine if
- a bacteria would reproduce on the current tick. Seed colony bacteria are given a random age from 0 to 1000.
- 
- Offspring bacteria can NEVER be stuck; age starts at 0
- 
- bacteria must be a certain age to reproduce
- 
- incoming bacteria have a randomized age form 0 to 1000
- 
- if (age mod clostDoub = 0 and age != 0)[
-      reproduceBact
-    ]
- set age (age + 1)
- 
- bact - 8500
-"""
+    # todo; model the unstuck, permstuck, stuck thing--exponential function? not constant?
+    # todo; look at similar literature from citations regarding basic biology
 
-# todo; model the unstuck, permstuck, stuck thing--exponential function? not constant?
-# todo; look at similar literature from citations regarding basic biology
-
-# todo; run gutlogo again under simplistic conditions
-# (turn stuck variables off; use one bacteria type) run that-save the output. Can we reproduce that with our model, by
-# reintroducing one variable at a time
+    # todo; run gutlogo again under simplistic conditions
+    # (turn stuck variables off; use one bacteria type) run that-save the output. Can we reproduce that with our model, by
+    # reintroducing one variable at a time

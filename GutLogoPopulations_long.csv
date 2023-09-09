@@ -3,7 +3,7 @@
 "08/12/2023 15:50:06:763 -0500"
 
 "MODEL SETTINGS"
-"midstuckconc","initnumclosts","bacteroiddoub","inflowfo","clostdoub","inconcbifidos","unstuckchance","testconst","desulfodoub","seedchance","initnumdesulfos","reservefraction","inflowlactate","randdist","inconcbacteroides","flowdist","inflowcs","inconcdesulfos","lowstuckbound","bifidodoub","tickinflow","inconcclosts","seedpercent","bifido-lactate-production","plots-on?","absorption","initnumbifidos","initnumbacteroides","inflowlactose","inflowinulin","maxstuckchance","inflowglucose"
+"midstuckconc","initnumclosts","bacteroiddoub","inflowfo","clostdoub","inconcbifido","unstuckchance","testconst","desulfodoub","seedchance","initnumdesulfos","reservefraction","inflowlactate","randdist","inconcbacteroides","flowdist","inflowcs","inconcdesulfos","lowstuckbound","bifidodoub","tickinflow","inconcclosts","seedpercent","bifido-lactate-production","plots-on?","absorption","initnumbifidos","initnumbacteroides","inflowlactose","inflowinulin","maxstuckchance","inflowglucose"
 "10","921","330","25","330","0","10","1","330","5","70","0","0","0","0","0.28","0.1","0","2","330","480","0","5","0.005","true","0","23562","5490","15","10","50","30"
 
 """Populations"""
