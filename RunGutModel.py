@@ -18,16 +18,14 @@ plt.tight_layout()
 
 # run pysb model with gutlogo settings
 sim = ScipyOdeSimulator(model, t_span, verbose=True)
+
 # remove extraneous system settings
 param_names = [p.name for p in model.parameters]
-print(settings)
-print("")
 for key in [k for k in settings.keys()]:
     if key not in param_names:
         settings.pop(key)
-# run simulation
-print(settings)
 
+# run simulation
 result = sim.run(param_values=settings)
 
 plt.figure()

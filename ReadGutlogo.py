@@ -27,7 +27,6 @@ def read_Gutlogo(filename):
                     new_key = key.replace('-', '_')
                     if new_key != key:
                         settings[new_key] = settings.pop(key)
-                print(settings)
             elif i == 18:
                 cells = [name.strip('\"') for name in line if name != '']
                 cell_counts = {}
