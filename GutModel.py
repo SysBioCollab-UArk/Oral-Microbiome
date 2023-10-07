@@ -33,13 +33,13 @@ Parameter("inconcdesulfos", 0)
 
 # Bacterial doubling times (steps)
 # "bacteroiddoub",
-Parameter("bacteroiddoub")
+Parameter("bacteroiddoub", 330)
 # "clostdoub",
-Parameter("clostdoub")
+Parameter("clostdoub", 330)
 # "bifidodoub",
-Parameter("bifidodoub")
+Parameter("bifidodoub", 330)
 # "desulfodoub",
-Parameter("desulfodoub")
+Parameter("desulfodoub", 330)
 #todo commentout variables, and change parameteres to expressions
 
 # inflow of metabolites per timestep (#/step)
@@ -56,7 +56,6 @@ Parameter("inflowinulin", 10)
 # "inflowlactate",
 Parameter("inflowlactate", 0)
 
-
 # number of lactate molecules produced by bifido (#/step)
 # "bifido_lactate_production",
 Parameter("bifido_lactate_production", 0.005)
@@ -64,24 +63,24 @@ Parameter("bifido_lactate_production", 0.005)
 # parameters of sticking and unsticking of bacteria in the gut lining
 # "seedpercent", (fraction)
 #todo change to expression below
-Parameter("seedpercent")
+Parameter("seedpercent", 5.0)
 # "seedchance", (probability/step)
-Parameter("seedchance", 0.05)
+Parameter("seedchance", 5.0)
 # "unstuckchance", (probability/step)
-Parameter("unstuckchance", 0.1)
+Parameter("unstuckchance", 10)
 # "lowstuckbound", (probability/step)
-Parameter("lowstuckbound", 0.02)
+Parameter("lowstuckbound", 2)
 # "maxstuckchance", (probability/step)
-Parameter("maxstuckchance", 0.5)
+Parameter("maxstuckchance", 50)
 # "midstuckconc", (#) todo this variable is not being exported to the results file by gutlogo
 Parameter("midstuckconc", 10)
 
 
 # "flowdist", # patches / min
 #todo change to expression below
-Parameter("flowdist")
+Parameter("flowdist", 0.28)
 # "tickinflow", # steps
-Parameter("tickinflow")
+Parameter("tickinflow", 480)
 
 #todo get to a point where you can run the simulation and get to the same results as before
 
@@ -108,7 +107,7 @@ Parameter("tickinflow")
 
 
 n_levels = 10
-t_step = 60  # 26.3 seconds
+t_step = 60  # seconds
 hung_threshold = int(0.8*n_levels - 1)
 deltaE_50 = int(np.ceil(n_levels/2))
 deltaE_25 = int(np.ceil(deltaE_50/2))
@@ -135,12 +134,10 @@ Monomer('Desulfobrivio', ['energy', 'stuck'], {'energy': ['_%d' % i for i in ran
 # todo: initnumdesulfos 70.0, do this for all of the other parameters
 # initnumdesulfos = 70
 
-seedpercent = 0.05  # fraction of initial cells that are permanently stuck
-
-Expression('Bact_unstuck_0', initnumbacteroides * (1-seedpercent))
-Expression('Clost_unstuck_0', initnumclosts * (1-seedpercent))
-Expression('Bifido_unstuck_0', initnumbifidos * (1-seedpercent))
-Expression('Desulfo_unstuck_0', initnumdesulfos * (1-seedpercent))
+Expression('Bact_unstuck_0', initnumbacteroides * (1-seedpercent / 100))
+Expression('Clost_unstuck_0', initnumclosts * (1-seedpercent / 100))
+Expression('Bifido_unstuck_0', initnumbifidos * (1-seedpercent / 100))
+Expression('Desulfo_unstuck_0', initnumdesulfos * (1-seedpercent / 100))
 
 Initial(Bacteroides(energy='_%d' % (n_levels - 1), stuck='u'), Bact_unstuck_0)
 Initial(Clostridium(energy='_%d' % (n_levels - 1), stuck='u'), Clost_unstuck_0)
@@ -191,8 +188,6 @@ obs_Bifido_gt_100 = [Observable('Bifido_E%d' % i, Bifidobacterium(energy='_%d' %
 obs_Desulfo_0_100 = [Observable('Desulfo_E%d' % i, Desulfobrivio(energy='_%d' % i)) for i in range(n_levels)]
 obs_Desulfo_gt_100 = [Observable('Desulfo_E%d' % i, Desulfobrivio(energy='_%d' % i)) for i in range(n_levels, n_levels + deltaE_50)]
 #########
-
-obs_to_plot = ['Bact_tot', 'Clost_tot', 'Bifido_tot', 'Desulfo_tot']
 
 # METABOLITES
 
@@ -375,14 +370,14 @@ Parameter('k_energy_loss', 1/(1440/n_levels * t_step))  # 1440 minutes = 24 hour
 #     per time step
 
 div_threshold = int(n_levels/2)
-bacteroiddoub = 330*t_step  # doubling time
-clostdoub = 330*t_step
-desulfodoub = 330*t_step
-bifidodoub = 330*t_step
-Parameter('k_Bact_division', (np.log(2)/bacteroiddoub))  # division rate: X = Xo * exp(kt), X/Xo = 2, t = td
-Parameter('k_Clost_division', (np.log(2)/clostdoub))
-Parameter('k_Desulfo_division', (np.log(2)/desulfodoub))
-Parameter('k_Bifido_division', (np.log(2)/bifidodoub))
+# bacteroiddoub = 330*t_step  # doubling time
+# clostdoub = 330*t_step
+# desulfodoub = 330*t_step
+# bifidodoub = 330*t_step
+Expression('k_Bact_division', np.log(2)/(bacteroiddoub*t_step))  # division rate: X = Xo * exp(kt), X/Xo = 2, t = td
+Expression('k_Clost_division', np.log(2)/(clostdoub*t_step))
+Expression('k_Desulfo_division', np.log(2)/(desulfodoub*t_step))
+Expression('k_Bifido_division', np.log(2)/(bifidodoub*t_step))
 # todo; account for number of cells during division like in gutlogo code below
 # todo; play around in gutlogo code on netogo; isolate the cause of growth at 350 timesteps
 # todo; double check that their stuck rules match their paper (stuck --> stuck + unstuck)
@@ -434,13 +429,13 @@ Rule('Desulfo_death_age', Desulfobrivio() >> None, k_Death_Age)
 Rule('Bifido_death_age', Bifidobacterium() >> None, k_Death_Age)
 
 # removal rules (by flow)
-flowdist = 0.28
-flow_rate = flowdist*7.98 # flowdist in patches/min #2.22  # cm/min
+
+# flowdist in patches/min #2.22
 # 7.98 cm is the length of an element; there are 100 total elements; 60 seconds per minute
-Parameter('k_Bact_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
-Parameter('k_Clost_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
-Parameter('k_Desulfo_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
-Parameter('k_Bifido_unstuck_removed', flow_rate / (7.98*100) / 60)  # /s
+Expression('k_Bact_unstuck_removed', flowdist / 100 / 60)  # /s
+Expression('k_Clost_unstuck_removed', flowdist / 100 / 60)  # /s
+Expression('k_Desulfo_unstuck_removed', flowdist / 100 / 60)  # /s
+Expression('k_Bifido_unstuck_removed', flowdist / 100 / 60)  # /s
 
 Rule('Bact_unstuck_removal', Bacteroides(stuck='u') >> None, k_Bact_unstuck_removed)
 Rule('Clost_unstuck_removal', Clostridium(stuck='u') >> None, k_Clost_unstuck_removed)
@@ -448,13 +443,10 @@ Rule('Desulfo_unstuck_removal', Desulfobrivio(stuck='u') >> None, k_Desulfo_unst
 Rule('Bifido_unstuck_removal', Bifidobacterium(stuck='u') >> None, k_Bifido_unstuck_removed)
 
 # stuck rules
-#Parameter('maxstuckchance', 0.5)  # probability per step
-#Parameter('midstuckconc', 10)  # concentration (# of bacteria)
-#Parameter('lowstuckbound', 0.02)  # probability per step
 Expression('k_stuck', Piecewise((0, maxstuckchance * (1 - Pop_tot / (midstuckconc + Pop_tot)) < lowstuckbound),
-                                (maxstuckchance * (1 - Pop_tot / (midstuckconc + Pop_tot)) / t_step, True)))
-Expression('k_unstuckchance', unstuckchance/t_step)  # probability per step #0.1
-Expression('k_seedchance', seedchance/t_step)  # probability per step #0.05
+                                (maxstuckchance / 100 * (1 - Pop_tot / (midstuckconc + Pop_tot)) / t_step, True)))
+Expression('k_unstuckchance', unstuckchance/ 100 /t_step)  # probability per step #0.1
+Expression('k_seedchance', seedchance/ 100 / t_step)  # probability per step #0.05
 
 Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck='s'), k_stuck, k_unstuckchance)
 Rule('Bact_permstuck', Bacteroides(stuck='s') >> Bacteroides(stuck='p'), k_seedchance)
@@ -470,7 +462,8 @@ Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck='p'
 
 # TODO: turn on inflow rules
 # bacteria inflow rules
-tickinflow = 480 * t_step  # s (480 ticks, 1 minute per tick = 8 hours)
+
+Expression('k_tickinflow', tickinflow * t_step)  # s (480 ticks, 1 minute per tick = 8 hours)
 
 # inconcbact = 0  # number of bacteroides added every 480 steps
 Expression('k_Bact_creation', inconcbacteroides/tickinflow)
@@ -499,12 +492,15 @@ Rule('Bifido_creation', None >> Bifidobacterium(energy='_%d' % (n_levels - 1), s
 #     print(ic)
 # quit()
 if __name__ == '__main__':
-    quit()
+    print(model.parameters)
+    #quit()
     # simulations
     n_steps = 1000  # 5000
     t_span = np.linspace(0, n_steps*t_step, int(n_steps)*1+1)
     sim = ScipyOdeSimulator(model, t_span, verbose=True)
     result = sim.run()
+
+    obs_to_plot = ['Bact_tot', 'Clost_tot', 'Bifido_tot', 'Desulfo_tot']
 
     for obs in obs_to_plot:
         plt.plot(range(n_steps + 1), result.observables[obs], label=obs)
@@ -524,9 +520,9 @@ if __name__ == '__main__':
 
     # plot GutLogo simulations
     plt.figure()
-    x, pops, label = read_Gutlogo('populations-3.csv')
-    for y, l in zip(pops, label):
-        plt.plot(x, y, label=l)
+    time, cell_counts, settings = read_Gutlogo('GutLogoPopulations_long.csv')
+    for species in cell_counts.keys():
+        plt.plot(time, cell_counts[species], label=species)
     plt.xlabel('Time step (tick)')
     plt.ylabel('Population (number of agents)')
     # plt.title('Kinetics Model of Gut Microbiome')
@@ -534,9 +530,9 @@ if __name__ == '__main__':
     plt.tight_layout()
 
     plt.figure()
-    x, pops, label = read_Gutlogo('populations-4.csv')
-    for y, l in zip(pops, label):
-        plt.plot(x, y, label=l)
+    time, cell_counts, settings = read_Gutlogo('GutLogoPopulations_short.csv')
+    for species in cell_counts.keys():
+        plt.plot(time, cell_counts[species], label=species)
     plt.xlabel('Time (number of time steps)')
     plt.ylabel('Population (number of agents)')
     plt.title('Kinetics Model of Gut Microbiome')
@@ -609,3 +605,4 @@ if __name__ == '__main__':
     # todo; run gutlogo again under simplistic conditions
     # (turn stuck variables off; use one bacteria type) run that-save the output. Can we reproduce that with our model, by
     # reintroducing one variable at a time
+
