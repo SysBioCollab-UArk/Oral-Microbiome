@@ -4,27 +4,28 @@ from pysb.simulator import ScipyOdeSimulator
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from scroll import ScrollableWindow
 
 file_dir = '/Users/ahmedtolba/desktop/GutLogo Simulations'
 file_prefix = 'GutLogo Populations'
 file_suffix = 'csv'
 
 n_files = len(os.listdir(file_dir))
-fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex=True, sharey=True, figsize=[6.4, 4.8*n_files/2]) #6.4, 4.8 default
+fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex=False, sharey=True, figsize=[6.4, 4.8*n_files/2]) #6.4, 4.8 default
 
-for i in range(len(os.listdir(file_dir))):
+legend_created = False  # Track if the legend has been created
+
+
+for i in range(n_files):
     print(i)
     # read time courses and settings from gutlogo
     t_span, cell_counts, settings = read_Gutlogo('%s/%s%d.%s' % (file_dir, file_prefix, i, file_suffix))
 
     # plot gutlogo time courses
-    #plt.figure()
     for species in sorted(cell_counts.keys()):
         axs[i][0].plot(t_span, cell_counts[species], label=species)
-    axs[i][0].set_xlabel('Time (number of time steps)')
-    axs[i][0].set_ylabel('Population (number of agents)')
-#    axs[i][0].legend(loc=0)
-    #plt.tight_layout()
+    axs[i][0].set_xlabel('step')
+    axs[i][0].set_ylabel('# of agents')
 
     # run pysb model with gutlogo settings
     sim = ScipyOdeSimulator(model, t_span, verbose=True)
@@ -38,24 +39,22 @@ for i in range(len(os.listdir(file_dir))):
     # run simulation
     result = sim.run(param_values=settings)
 
-    #plt.figure()
     for obs in sorted(['Bact_tot', 'Clost_tot', 'Bifido_tot', 'Desulfo_tot']):
         axs[i][1].plot(t_span, result.observables[obs], label=obs)
-        axs[i][1].set_xlabel('time (number of time steps)')
+        axs[i][1].set_xlabel('time')
         axs[i][1].set_ylabel('# of cells')
-        # plt.yscale('log', base = 10)
-#    axs[i][1].legend(loc=0)
 
-    plt.tight_layout()
+    # Only create the legend for the first subplot
+    if not legend_created:
+        axs[i][0].legend(loc='center', bbox_to_anchor=(1.1, 1.2), ncol=4)
+        legend_created = True
 
-plt.show()
+# Create a scrollable window for the figure
+a = ScrollableWindow(fig)
+a.fig.tight_layout()
+a.fig.savefig("GutModel.pdf", format="pdf")
 
-# todo: get the plots to display in a useful way, maybe break up into chunks of 5 at a time,
-#  very automated and general way. Ex.) 14 --> 5, 5, 4
-# todo: how to generate a legend for the whole figure --> one possible answer is
-# todo: have a spreadsheet or something that lists what the differences are in each file to figure out how each of them
-# are different
-# https://stackoverflow.com/questions/9834452/how-do-i-make-a-single-legend-for-many-subplots
-#  systematically go through and run all of them and compare our results to theirs
-
-
+#todo: figure is good but pdf is bad--fix tightlayout and axis issue. Maybe the legend is messing it up.
+# Comment out 47-50 and see what the tightlayout looks like. If it is still screwey look at documentationa
+# and if it is still screwey
+#https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.tight_layout.html
