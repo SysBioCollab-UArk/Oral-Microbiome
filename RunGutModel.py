@@ -5,6 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from scroll import ScrollableWindow
+import csv
+
+# todo: make a biorender figure of the biological processes included in the model.
+#  This will be the first figure of a future manuscript.
+
+# todo: figure out why our simulations always end with zero bacteria while most GutLogo simulations end
+#  with an equilibrium level of bacteria
 
 file_dir = 'GutLogo Simulations'
 file_prefix = 'GutLogo Populations'
@@ -16,7 +23,9 @@ sim = ScipyOdeSimulator(model, verbose=True)
 fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex=False, sharey=True, figsize=[6.4, 4.8*n_files/2]) #6.4, 4.8 default
 legend_created = False  # Track if the legend has been created
 
-for i in range(n_files - 8): #todo: figure out why the simulation stops at 6-->7
+all_settings = {}  # dictionary to store the settings for all files
+
+for i in range(n_files - 8):  # todo: figure out why the simulation stops at 6-->7
     file_name = '%s/%s%d.%s' % (file_dir, file_prefix, i, file_suffix)
     print(file_name)
     # read time courses and settings from gutlogo
@@ -29,12 +38,18 @@ for i in range(n_files - 8): #todo: figure out why the simulation stops at 6-->7
     axs[i][0].set_ylabel('# of agents')
 
     # run pysb model with gutlogo settings
-
     # remove extraneous system settings
     param_names = [p.name for p in model.parameters]
     for key in [k for k in settings.keys()]:
         if key not in param_names:
             settings.pop(key)
+
+    # save current settings in all_settings dictionary to output to csv file later
+    for key in settings.keys():
+        if i == 0:
+            all_settings[key] = [settings[key]]
+        else:
+            all_settings[key] += [settings[key]]
 
     # run simulation
     t_span = np.array(sim_steps) * 60 # 1 sim_step = 60 seconds
@@ -62,40 +77,14 @@ plt.tight_layout()
 # Set legend_created to True so that it won't be created again
 legend_created = True
 
-
 # Create a scrollable window for the figure
 a = ScrollableWindow(fig)
 a.fig.tight_layout()
 a.fig.savefig("GutModel.pdf", format="pdf")
 
-#todo: figure is good but pdf is bad--fix tightlayout and axis issue. Maybe the legend is messing it up.
-# Comment out 47-50 and see what the tightlayout looks like. If it is still screwey look at documentationa
-# and if it is still screwey
-#https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.tight_layout.html
-
-# TODO (11/18/23):
-#  1) Work on adding a single legend to the figure using the example code provided in 'single_legend.py'
-#  2) Complete the example code in the `if __name__ == "__main__"' block of 'ReadGutlogo.py' to produce two plots,
-#  one for GutLogo and one for PySB
-
-# todo: create table with files on x and settings on the y using tabulate library https://www.geeksforgeeks.org/how-to-make-a-table-in-python/
-# todo: make the biorender figure
-
-from tabulate import tabulate
-
-table_data = []
-
-for i in range(n_files):
-    file_name = '%s/%s%d.%s' % (file_dir, file_prefix, i, file_suffix)
-    sim_steps, cell_counts, settings = read_Gutlogo(file_name)
-
-    table_data.append([f"File {i}", settings])
-
-print(tabulate(table_data, headers=["Files", "Settings"], tablefmt="pretty"))
-
-import csv
+# Output settings from all runs into a csv file
 with open('GutLogoSettings.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
     writer.writerow(['parameter'] + ['%s%d.%s' % (file_prefix, i, file_suffix) for i in range(n_files)])
-    #writer.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
-
+    for key in all_settings.keys():
+        writer.writerow([key] + all_settings[key])
