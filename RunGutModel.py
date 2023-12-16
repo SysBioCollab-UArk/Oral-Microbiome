@@ -16,7 +16,7 @@ sim = ScipyOdeSimulator(model, verbose=True)
 fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex=False, sharey=True, figsize=[6.4, 4.8*n_files/2]) #6.4, 4.8 default
 legend_created = False  # Track if the legend has been created
 
-for i in range(n_files): #todo: figure out why the simulation stops at 6-->7
+for i in range(n_files - 8): #todo: figure out why the simulation stops at 6-->7
     file_name = '%s/%s%d.%s' % (file_dir, file_prefix, i, file_suffix)
     print(file_name)
     # read time courses and settings from gutlogo
@@ -81,4 +81,21 @@ a.fig.savefig("GutModel.pdf", format="pdf")
 # todo: create table with files on x and settings on the y using tabulate library https://www.geeksforgeeks.org/how-to-make-a-table-in-python/
 # todo: make the biorender figure
 
+from tabulate import tabulate
+
+table_data = []
+
+for i in range(n_files):
+    file_name = '%s/%s%d.%s' % (file_dir, file_prefix, i, file_suffix)
+    sim_steps, cell_counts, settings = read_Gutlogo(file_name)
+
+    table_data.append([f"File {i}", settings])
+
+print(tabulate(table_data, headers=["Files", "Settings"], tablefmt="pretty"))
+
+import csv
+with open('GutLogoSettings.csv', 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',')
+    writer.writerow(['parameter'] + ['%s%d.%s' % (file_prefix, i, file_suffix) for i in range(n_files)])
+    #writer.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
 
