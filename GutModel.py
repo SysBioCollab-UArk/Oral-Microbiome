@@ -56,7 +56,6 @@ Parameter("tickinflow", 480)
 
 # TODO: Not sure why we're using seconds as the time unit. Each step = 1 minute. Could we use minutes as the time unit?
 t_step = 60  # seconds
-hung_threshold = int(0.8 * n_levels - 1)
 
 # TODO: add carrying capacity rules - STILL NEED TO DO THIS (06/08/24)
 # yes, stuck bacteria can reproduce, and offspring bacteria is unstuck
@@ -107,16 +106,6 @@ Observable('Clost_tot', Clostridium())
 Observable('Bifido_tot', Bifidobacterium())
 Observable('Desulfo_tot', Desulfobrivio())
 Observable('Pop_tot', Bacteroides() + Clostridium() + Bifidobacterium() + Desulfobrivio())
-
-Hungry_bact = [Bacteroides(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
-              [Clostridium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
-              [Bifidobacterium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
-              [Desulfobrivio(energy='_%d' % i) for i in range(hung_threshold + 1)]
-Hungry_obs = Hungry_bact[0]
-for i in range(1, len(Hungry_bact)):
-    Hungry_obs += Hungry_bact[i]
-
-Observable('Hungry_tot', Hungry_obs)
 
 # Temporary #########
 # Observable('Bact_E150', Bacteroides(energy='_%d' % (n_levels + deltaE_50 - 1)))
@@ -185,7 +174,8 @@ Rule('Fructo_prod', None >> Fructo(), k_inflowfo)
 Rule('ChondSulf_prod', None >> ChondSulf(), k_inflowcs)
 Rule('Lactate_prod', None >> Lactate(), k_inflowlactate)
 
-# bacterial eating rules
+# BACTERIAL EATING RULES
+hung_threshold = int(0.8 * n_levels - 1)
 #  k_hungry = 1/(N*M), N = total number of hungry bacteria, M = total number of metabolites
 # (Nb/N * 1/Nb) * (Mi/M * 1/Mi) = prob of selecting any given bacteroide with any given inulin
 
@@ -283,6 +273,16 @@ Expression('k_Bifido_Fructo_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot
 # lactate production rule
 Expression('k_bifido_lactate_production', bifido_lactate_production/t_step)
 Rule('BifidoMakesLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_bifido_lactate_production)
+
+Hungry_bact = [Bacteroides(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
+              [Clostridium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
+              [Bifidobacterium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
+              [Desulfobrivio(energy='_%d' % i) for i in range(hung_threshold + 1)]
+Hungry_obs = Hungry_bact[0]
+for i in range(1, len(Hungry_bact)):
+    Hungry_obs += Hungry_bact[i]
+
+Observable('Hungry_tot', Hungry_obs)
 
 # energy loss rules
 Parameter('k_energy_loss', 1/(1440/n_levels * t_step))  # 1440 minutes = 24 hours, time cells can survive w/o eating
