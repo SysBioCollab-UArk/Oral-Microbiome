@@ -179,6 +179,16 @@ hung_threshold = int(0.8 * n_levels - 1)
 #  k_hungry = 1/(N*M), N = total number of hungry bacteria, M = total number of metabolites
 # (Nb/N * 1/Nb) * (Mi/M * 1/Mi) = prob of selecting any given bacteroide with any given inulin
 
+Hungry_bact = [Bacteroides(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
+              [Clostridium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
+              [Bifidobacterium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
+              [Desulfobrivio(energy='_%d' % i) for i in range(hung_threshold + 1)]
+Hungry_obs = Hungry_bact[0]
+for i in range(1, len(Hungry_bact)):
+    Hungry_obs += Hungry_bact[i]
+
+Observable('Hungry_tot', Hungry_obs)
+
 deltaE_Bact_Inulin = deltaE_25  # energy increase in GutLogo code
 Expression('k_Bact_Inulin_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot < 1)),
                                              (1/(Metab_tot*Hungry_tot)/t_step, True)))
@@ -274,15 +284,9 @@ Expression('k_Bifido_Fructo_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot
 Expression('k_bifido_lactate_production', bifido_lactate_production/t_step)
 Rule('BifidoMakesLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_bifido_lactate_production)
 
-Hungry_bact = [Bacteroides(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
-              [Clostridium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
-              [Bifidobacterium(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
-              [Desulfobrivio(energy='_%d' % i) for i in range(hung_threshold + 1)]
-Hungry_obs = Hungry_bact[0]
-for i in range(1, len(Hungry_bact)):
-    Hungry_obs += Hungry_bact[i]
 
-Observable('Hungry_tot', Hungry_obs)
+
+
 
 # energy loss rules
 Parameter('k_energy_loss', 1/(1440/n_levels * t_step))  # 1440 minutes = 24 hours, time cells can survive w/o eating
