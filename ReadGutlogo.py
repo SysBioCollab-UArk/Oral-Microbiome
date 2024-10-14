@@ -46,18 +46,21 @@ if __name__ == '__main__':
     from pysb.simulator import ScipyOdeSimulator
     import numpy as np
     import matplotlib.pyplot as plt
+    import os
 
     # Read GutLogo data
-    steps_gutlogo, cell_counts_gutlogo, settings_gutlogo = read_Gutlogo('GutLogoPopulations_long.csv')
+    file=os.path.join("GutLogo Simulations","GutLogo plots_2.csv")
+    steps_gutlogo, cell_counts_gutlogo, settings_gutlogo = read_Gutlogo(file)
 
     # Plot GutLogo data
-    plt.figure()
-    for species in cell_counts_gutlogo.keys():
+    plt.figure(constrained_layout=True)
+    for species in sorted(cell_counts_gutlogo.keys()):
         plt.plot(steps_gutlogo, cell_counts_gutlogo[species], label=species)
     plt.xlabel('Time Step')
     plt.ylabel('Population (number of agents)')
     plt.legend(loc=0)
     plt.title('GutLogo Simulation')
+
 
     # remove extraneous system settings
     param_names = [p.name for p in model.parameters]
@@ -73,7 +76,7 @@ if __name__ == '__main__':
     result = sim.run(tspan=t_span, param_values=settings_gutlogo)
 
     # Plot PySB data
-    plt.figure()
+    plt.figure(constrained_layout=True)
     for obs in sorted(['Bact_tot', 'Clost_tot', 'Bifido_tot', 'Desulfo_tot']):
         plt.plot(t_span / 60, result.observables[obs], label=obs)
     plt.xlabel('Time (min)')
