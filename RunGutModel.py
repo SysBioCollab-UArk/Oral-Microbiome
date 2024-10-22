@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import os
 from scroll import ScrollableWindow
 import csv
+import glob
 
 # todo: make a biorender figure of the biological processes included in the model.
 #  This will be the first figure of a future manuscript.
@@ -14,29 +15,39 @@ import csv
 #  with an equilibrium level of bacteria
 
 file_dir = 'GutLogo Simulations'
-file_prefix = 'GutLogo Populations'
+file_prefix = 'GutLogo plots_'
 file_suffix = 'csv'
-n_files = len(os.listdir(file_dir))
+files=glob.glob(os.path.join(file_dir, file_prefix + "*"))
+n_files = len(files)
+file_names = []
 
-sim = ScipyOdeSimulator(model, verbose=True)
+#sim = ScipyOdeSimulator(model, verbose=True)
 
-fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex=False, sharey=True, figsize=[6.4, 4.8*n_files/2]) #6.4, 4.8 default
+fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex=True, sharey=True, figsize=[6.4, 4.8*n_files/2]) #6.4, 4.8 default
 legend_created = False  # Track if the legend has been created
 
 all_settings = {}  # dictionary to store the settings for all files
 
-for i in range(n_files - 8):  # todo: figure out why the simulation stops at 6-->7
-    file_name = '%s/%s%d.%s' % (file_dir, file_prefix, i, file_suffix)
+n=0
+for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
+    file_name = '%s/%s%d.%s' % (file_dir, file_prefix, n, file_suffix)
+    while not os.path.exists(file_name):
+        n += 1
+        file_name = '%s/%s%d.%s' % (file_dir, file_prefix, n, file_suffix)
     print(file_name)
+    file_names.append(file_name)
     # read time courses and settings from gutlogo
     sim_steps, cell_counts, settings = read_Gutlogo(file_name)
 
     # plot gutlogo time courses
     for species in sorted(cell_counts.keys()):
         axs[i][0].plot(sim_steps, cell_counts[species], label=species)
-    axs[i][0].set_xlabel('step')
+    if i == n_files - 1:
+        axs[i][0].set_xlabel('step')
     axs[i][0].set_ylabel('# of agents')
+    axs[i][0].set_title("%s%d" % (file_prefix, n))
 
+    
     # run pysb model with gutlogo settings
     # remove extraneous system settings
     param_names = [p.name for p in model.parameters]
@@ -50,7 +61,7 @@ for i in range(n_files - 8):  # todo: figure out why the simulation stops at 6--
             all_settings[key] = [settings[key]]
         else:
             all_settings[key] += [settings[key]]
-
+    """
     # run simulation
     t_span = np.array(sim_steps) * 60 # 1 sim_step = 60 seconds
     result = sim.run(tspan=t_span, param_values=settings)
@@ -60,6 +71,9 @@ for i in range(n_files - 8):  # todo: figure out why the simulation stops at 6--
         axs[i][1].plot(t_span / 60, result.observables[obs], label=obs)
         axs[i][1].set_xlabel('time (min)')
         axs[i][1].set_ylabel('# of cells')
+    """
+
+    n += 1
 
 # Create a subplot for the legend (invisible)
 legend_ax = fig.add_subplot(111, frameon=False)
@@ -83,8 +97,8 @@ a.fig.tight_layout()
 a.fig.savefig("GutModel.pdf", format="pdf")
 
 # Output settings from all runs into a csv file
-with open('GutLogoSettings.csv', 'w') as csvfile:
+with open('GutLogoSettings.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
-    writer.writerow(['parameter'] + ['%s%d.%s' % (file_prefix, i, file_suffix) for i in range(n_files)])
+    writer.writerow(['parameter'] + file_names)
     for key in all_settings.keys():
         writer.writerow([key] + all_settings[key])
