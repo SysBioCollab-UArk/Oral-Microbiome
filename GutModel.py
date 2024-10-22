@@ -16,7 +16,7 @@ Parameter("initnumbifidos", 23562)
 Parameter("initnumbacteroides", 5490)
 
 # inflow of bacteria: # of bacteria that enter the system every 'tickinflow' steps
-Parameter("inconcbifido", 0)
+Parameter("inconcbifidos", 0)
 Parameter("inconcclosts", 0)
 Parameter("inconcbacteroides", 0)
 Parameter("inconcdesulfos", 0)
@@ -422,12 +422,12 @@ Rule('Bifido_permstuck', Bifidobacterium(stuck='s') >> Bifidobacterium(stuck='p'
 Expression("k_inconcbacteroides", inconcbacteroides / (tickinflow * t_step))
 Expression("k_inconcclosts", inconcclosts / (tickinflow * t_step))
 Expression("k_inconcdesulfos", inconcdesulfos / (tickinflow * t_step))
-Expression("k_inconcbifido", inconcbifido / (tickinflow * t_step))
+Expression("k_inconcbifidos", inconcbifidos / (tickinflow * t_step))
 
 Rule('Bact_inflow', None >> Bacteroides(energy='_%d' % (n_levels - 1), stuck='u'), k_inconcbacteroides)
 Rule('Clost_inflow', None >> Clostridium(energy='_%d' % (n_levels - 1), stuck='u'), k_inconcclosts)
 Rule('Desulfo_inflow', None >> Desulfobrivio(energy='_%d' % (n_levels - 1), stuck='u'), k_inconcdesulfos)
-Rule('Bifido_inflow', None >> Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='u'), k_inconcbifido)
+Rule('Bifido_inflow', None >> Bifidobacterium(energy='_%d' % (n_levels - 1), stuck='u'), k_inconcbifidos)
 
 # print(model.parameters_rules())
 # print()
