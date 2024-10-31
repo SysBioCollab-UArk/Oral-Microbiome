@@ -7,15 +7,13 @@ import os
 from scroll import ScrollableWindow
 import csv
 import glob
-
-# todo: make a biorender figure of the biological processes included in the model.
-#  This will be the first figure of a future manuscript.
+import warnings
 
 # todo: figure out why our simulations always end with zero bacteria while most GutLogo simulations end
 #  with an equilibrium level of bacteria
 
 file_dir = 'GutLogo Simulations'
-file_prefix = 'GutLogo plots_'
+file_prefix = 'GutLogo plots_'  # 'GutLogo Populations'
 file_suffix = 'csv'
 files=glob.glob(os.path.join(file_dir, file_prefix + "*"))
 n_files = len(files)
@@ -47,12 +45,12 @@ for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
     axs[i][0].set_ylabel('# of agents')
     axs[i][0].set_title("%s%d" % (file_prefix, n))
 
-    
     # run pysb model with gutlogo settings
     # remove extraneous system settings
     param_names = [p.name for p in model.parameters]
     for key in [k for k in settings.keys()]:
         if key not in param_names:
+            warnings.warn("Discarding GutLogo parameter '%s'" % key)  # TODO: figure out why this isn't printing to the screen
             settings.pop(key)
 
     # save current settings in all_settings dictionary to output to csv file later
@@ -99,6 +97,6 @@ a.fig.savefig("GutModel.pdf", format="pdf")
 # Output settings from all runs into a csv file
 with open('GutLogoSettings.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
-    writer.writerow(['parameter'] + file_names)
+    writer.writerow(['parameter'] + [os.path.splitext(os.path.basename(file))[0] for file in file_names])
     for key in all_settings.keys():
         writer.writerow([key] + all_settings[key])

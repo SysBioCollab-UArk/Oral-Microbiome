@@ -9,6 +9,14 @@ Model()
 
 # PARAMETER SETTINGS FROM GUTLOGO
 
+# Absorption represents the percentage of metabolites that pass through the gut into the bloodstream.
+Parameter('absorption', 0)
+# A 'reserveFraction' of greater than zero will activate the reserve metabolite module of the simulation. This module
+# inhibits the bacteria from accessing a portion of the metabolites. The portion of metabolite available is a function
+# of position down the gut. Therefore, a colony further down the gut would have access to a larger portion of the
+# remaining bacteria than a colony closer to the start.
+Parameter('reservefraction', 0)
+
 # initial bacterial numbers (#)
 Parameter("initnumclosts", 921)
 Parameter("initnumdesulfos", 70)
@@ -44,7 +52,6 @@ Parameter("seedchance", 5.0)  # probability/step
 Parameter("unstuckchance", 10)  # probability/step
 Parameter("lowstuckbound", 2)  # probability/step
 Parameter("maxstuckchance", 50)  # probability/step
-# TODO: Note this variable is not being exported to the results file by gutlogo
 Parameter("midstuckconc", 10)  # # of cells
 
 # Fluid flow rate throughout the gut (patches/step)
