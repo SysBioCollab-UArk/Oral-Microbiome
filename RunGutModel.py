@@ -19,12 +19,12 @@ files=glob.glob(os.path.join(file_dir, file_prefix + "*"))
 n_files = len(files)
 file_names = []
 
-#sim = ScipyOdeSimulator(model, verbose=True)
-
-fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex=True, sharey=True, figsize=[6.4, 4.8*n_files/2]) #6.4, 4.8 default
+fig, axs = plt.subplots(nrows=n_files, ncols=2, sharex='all', sharey='all', figsize=[6.4, 4.8*n_files/2]) # [6.4, 4.8]
 legend_created = False  # Track if the legend has been created
 
 all_settings = {}  # dictionary to store the settings for all files
+sim = ScipyOdeSimulator(model, verbose=False)
+run_which = 'all' # [24, 34, 44]
 
 n=0
 for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
@@ -32,12 +32,14 @@ for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
     while not os.path.exists(file_name):
         n += 1
         file_name = '%s/%s%d.%s' % (file_dir, file_prefix, n, file_suffix)
+    #####
     print(file_name)
+    #####
     file_names.append(file_name)
     # read time courses and settings from gutlogo
     sim_steps, cell_counts, settings = read_Gutlogo(file_name)
 
-    # plot gutlogo time courses
+    # ##### Plot GutLogo time courses #####
     for species in sorted(cell_counts.keys()):
         axs[i][0].plot(sim_steps, cell_counts[species], label=species)
     if i == n_files - 1:
@@ -45,11 +47,13 @@ for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
     axs[i][0].set_ylabel('# of agents')
     axs[i][0].set_title("%s%d" % (file_prefix, n))
 
-    # run pysb model with gutlogo settings
+    # ##### Run PySB model with GutLogo settings #####
+
     # remove extraneous system settings
     param_names = [p.name for p in model.parameters]
     for key in [k for k in settings.keys()]:
         if key not in param_names:
+            # print('discarding', key)
             warnings.warn("Discarding GutLogo parameter '%s'" % key)  # TODO: figure out why this isn't printing to the screen
             settings.pop(key)
 
@@ -59,19 +63,19 @@ for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
             all_settings[key] = [settings[key]]
         else:
             all_settings[key] += [settings[key]]
-    """
+
     # run simulation
-    t_span = np.array(sim_steps) * 60 # 1 sim_step = 60 seconds
-    result = sim.run(tspan=t_span, param_values=settings)
+    if run_which == 'all' or n in run_which:
+        t_span = np.array(sim_steps) * 60  # 1 sim_step = 60 seconds
+        result = sim.run(tspan=t_span, param_values=settings)
 
-    # plot pysb time courses
-    for obs in sorted(['Bact_tot', 'Clost_tot', 'Bifido_tot', 'Desulfo_tot']):
-        axs[i][1].plot(t_span / 60, result.observables[obs], label=obs)
-        axs[i][1].set_xlabel('time (min)')
-        axs[i][1].set_ylabel('# of cells')
-    """
+        # plot pysb time courses
+        for obs in sorted(['Bact_tot', 'Clost_tot', 'Bifido_tot', 'Desulfo_tot']):
+            axs[i][1].plot(t_span / 60, result.observables[obs], label=obs)
+            axs[i][1].set_xlabel('time (min)')
+            axs[i][1].set_ylabel('# of cells')
 
-    n += 1
+    n += 1  # update file name index
 
 # Create a subplot for the legend (invisible)
 legend_ax = fig.add_subplot(111, frameon=False)

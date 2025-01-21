@@ -82,11 +82,6 @@ Monomer('Desulfobrivio', ['energy', 'stuck'],
         {'energy': ['_%d' % i for i in range(0, n_levels + deltaE_50)], 'stuck': ['u', 's', 'p']})
 
 # total # of initial bacteria (unstuck and stuck)
-# initnumbacteroides = 5490
-# initnumclosts = 921
-# initnumbifidos = 23562
-# todo: initnumdesulfos 70.0, do this for all of the other parameters
-# initnumdesulfos = 70
 
 Expression('Bact_unstuck_0', initnumbacteroides * (1-seedpercent / 100))
 Expression('Clost_unstuck_0', initnumclosts * (1-seedpercent / 100))
@@ -183,7 +178,7 @@ Rule('Lactate_prod', None >> Lactate(), k_inflowlactate)
 
 # BACTERIAL EATING RULES
 hung_threshold = int(0.8 * n_levels - 1)
-#  k_hungry = 1/(N*M), N = total number of hungry bacteria, M = total number of metabolites
+# k_hungry = 1/(N*M), N = total number of hungry bacteria, M = total number of metabolites
 # (Nb/N * 1/Nb) * (Mi/M * 1/Mi) = prob of selecting any given bacteroide with any given inulin
 
 Hungry_bact = [Bacteroides(energy='_%d' % i) for i in range(hung_threshold + 1)] + \
@@ -291,10 +286,6 @@ Expression('k_Bifido_Fructo_Hungry', Piecewise((0, (Metab_tot < 1) | (Hungry_tot
 Expression('k_bifido_lactate_production', bifido_lactate_production/t_step)
 Rule('BifidoMakesLactate', Bifidobacterium() >> Bifidobacterium() + Lactate(), k_bifido_lactate_production)
 
-
-
-
-
 # energy loss rules
 Parameter('k_energy_loss', 1/(1440/n_levels * t_step))  # 1440 minutes = 24 hours, time cells can survive w/o eating
 
@@ -381,6 +372,7 @@ Rule('Desulfo_death_energy', Desulfobrivio(energy='_0') >> None, k_Death_Energy)
 Rule('Bifido_death_energy', Bifidobacterium(energy='_0') >> None, k_Death_Energy)
 
 # death by age
+# TODO: Don't think cells can die by old age in GutLogo. ** Double check this **
 Parameter('k_Death_Age', 1/(1000 * t_step)) # age is a counter in GutLogo code going from 0 to 1000
 Rule('Bact_death_age', Bacteroides() >> None, k_Death_Age)
 Rule('Clost_death_age', Clostridium() >> None, k_Death_Age)
@@ -402,10 +394,14 @@ Rule('Desulfo_unstuck_removal', Desulfobrivio(stuck='u') >> None, k_Desulfo_unst
 Rule('Bifido_unstuck_removal', Bifidobacterium(stuck='u') >> None, k_Bifido_unstuck_removed)
 
 # stuck rules
-Expression('k_stuck', Piecewise((0, maxstuckchance * (1 - Pop_tot / (midstuckconc + Pop_tot)) < lowstuckbound),
-                                (maxstuckchance / 100 * (1 - Pop_tot / (midstuckconc + Pop_tot)) / t_step, True)))
-Expression('k_unstuckchance', unstuckchance/ 100 / t_step)  # probability per step #0.1
-Expression('k_seedchance', seedchance/ 100 / t_step)  # probability per step #0.05
+Expression('k_stuck',
+           Piecewise(
+               (0, maxstuckchance * (1 - Pop_tot / (midstuckconc + Pop_tot)) < lowstuckbound),
+               (maxstuckchance / 100 * (1 - Pop_tot / (midstuckconc + Pop_tot)) / t_step, True)
+           )
+)
+Expression('k_unstuckchance', unstuckchance / 100 / t_step)  # probability per step #0.1
+Expression('k_seedchance', seedchance / 100 / t_step)  # probability per step #0.05
 
 Rule('Bact_stuck', Bacteroides(stuck='u') | Bacteroides(stuck='s'), k_stuck, k_unstuckchance)
 Rule('Bact_permstuck', Bacteroides(stuck='s') >> Bacteroides(stuck='p'), k_seedchance)
