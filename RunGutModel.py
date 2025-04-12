@@ -46,6 +46,7 @@ for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
         axs[i][0].set_xlabel('step')
     axs[i][0].set_ylabel('# of agents')
     axs[i][0].set_title("%s%d" % (file_prefix, n))
+    axs[i][0].ticklabel_format(axis='y', style='sci', scilimits=(0, 0))
 
     # ##### Run PySB model with GutLogo settings #####
 
@@ -72,8 +73,10 @@ for i in range(n_files):  # todo: figure out why the simulation stops at 6-->7
         # plot pysb time courses
         for obs in sorted(['Bact_tot', 'Clost_tot', 'Bifido_tot', 'Desulfo_tot']):
             axs[i][1].plot(t_span / 60, result.observables[obs], label=obs)
-            axs[i][1].set_xlabel('time (min)')
+            if i == n_files - 1:
+                axs[i][1].set_xlabel('time (min)')
             axs[i][1].set_ylabel('# of cells')
+            axs[i][1].set_title("%s%d (PySB)" % (file_prefix, n))
 
     n += 1  # update file name index
 
